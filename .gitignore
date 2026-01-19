@@ -1,0 +1,19 @@
+# .NET and MAUI general
+[Bb]in/
+[Oo]bj/
+.vs/
+.idea/
+
+# MAUI/Platform specific
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.ide
+
+# Platform build folders (especially important)
+ios/
+macos/
+maccatalyst/
+android/
+winui/

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CalorieTracker.data/CalorieTracker.data.csproj" Id="f186805a-95ba-4902-b515-c7a41b01cf43" />
+  <Project Path="CalorieTracker/CalorieTracker.csproj" />
+</Solution>

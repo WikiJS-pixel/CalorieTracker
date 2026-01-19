@@ -1,0 +1,241 @@
+[
+  {
+    "Name": "Apple",
+    "CaloriesPer100g": 52,
+    "ProteinPer100g": 0.3,
+    "CarbsPer100g": 14,
+    "FatPer100g": 0.2
+  },
+  {
+    "Name": "Banana",
+    "CaloriesPer100g": 89,
+    "ProteinPer100g": 1.1,
+    "CarbsPer100g": 23,
+    "FatPer100g": 0.3
+  },
+  {
+    "Name": "Orange",
+    "CaloriesPer100g": 47,
+    "ProteinPer100g": 0.9,
+    "CarbsPer100g": 12,
+    "FatPer100g": 0.1
+  },
+  {
+    "Name": "Strawberry",
+    "CaloriesPer100g": 32,
+    "ProteinPer100g": 0.7,
+    "CarbsPer100g": 8,
+    "FatPer100g": 0.3
+  },
+  {
+    "Name": "Avocado",
+    "CaloriesPer100g": 160,
+    "ProteinPer100g": 2,
+    "CarbsPer100g": 9,
+    "FatPer100g": 15
+  },
+  {
+    "Name": "Blueberries",
+    "CaloriesPer100g": 57,
+    "ProteinPer100g": 0.7,
+    "CarbsPer100g": 14,
+    "FatPer100g": 0.3
+  },
+  {
+    "Name": "Broccoli",
+    "CaloriesPer100g": 34,
+    "ProteinPer100g": 2.8,
+    "CarbsPer100g": 7,
+    "FatPer100g": 0.4
+  },
+  {
+    "Name": "Carrot",
+    "CaloriesPer100g": 41,
+    "ProteinPer100g": 0.9,
+    "CarbsPer100g": 10,
+    "FatPer100g": 0.2
+  },
+  {
+    "Name": "Spinach",
+    "CaloriesPer100g": 23,
+    "ProteinPer100g": 2.9,
+    "CarbsPer100g": 4,
+    "FatPer100g": 0.4
+  },
+  {
+    "Name": "Tomato",
+    "CaloriesPer100g": 18,
+    "ProteinPer100g": 0.9,
+    "CarbsPer100g": 4,
+    "FatPer100g": 0.2
+  },
+  {
+    "Name": "Cucumber",
+    "CaloriesPer100g": 16,
+    "ProteinPer100g": 0.7,
+    "CarbsPer100g": 4,
+    "FatPer100g": 0.1
+  },
+  {
+    "Name": "Potato (baked)",
+    "CaloriesPer100g": 93,
+    "ProteinPer100g": 2.5,
+    "CarbsPer100g": 21,
+    "FatPer100g": 0.1
+  },
+  {
+    "Name": "Sweet Potato",
+    "CaloriesPer100g": 86,
+    "ProteinPer100g": 1.6,
+    "CarbsPer100g": 20,
+    "FatPer100g": 0.1
+  },
+  {
+    "Name": "Chicken Breast (cooked)",
+    "CaloriesPer100g": 165,
+    "ProteinPer100g": 31,
+    "CarbsPer100g": 0,
+    "FatPer100g": 3.6
+  },
+  {
+    "Name": "Turkey Breast (cooked)",
+    "CaloriesPer100g": 135,
+    "ProteinPer100g": 30,
+    "CarbsPer100g": 0,
+    "FatPer100g": 1
+  },
+  {
+    "Name": "Beef (lean, cooked)",
+    "CaloriesPer100g": 250,
+    "ProteinPer100g": 26,
+    "CarbsPer100g": 0,
+    "FatPer100g": 15
+  },
+  {
+    "Name": "Salmon (cooked)",
+    "CaloriesPer100g": 208,
+    "ProteinPer100g": 20,
+    "CarbsPer100g": 0,
+    "FatPer100g": 13
+  },
+  {
+    "Name": "Tuna (canned in water)",
+    "CaloriesPer100g": 86,
+    "ProteinPer100g": 19,
+    "CarbsPer100g": 0,
+    "FatPer100g": 1
+  },
+  {
+    "Name": "Egg (whole)",
+    "CaloriesPer100g": 155,
+    "ProteinPer100g": 13,
+    "CarbsPer100g": 1,
+    "FatPer100g": 11
+  },
+  {
+    "Name": "Milk (whole)",
+    "CaloriesPer100g": 61,
+    "ProteinPer100g": 3.2,
+    "CarbsPer100g": 5,
+    "FatPer100g": 3.3
+  },
+  {
+    "Name": "Greek Yogurt (nonfat)",
+    "CaloriesPer100g": 59,
+    "ProteinPer100g": 10,
+    "CarbsPer100g": 4,
+    "FatPer100g": 0
+  },
+  {
+    "Name": "Cottage Cheese (low-fat)",
+    "CaloriesPer100g": 81,
+    "ProteinPer100g": 11,
+    "CarbsPer100g": 4,
+    "FatPer100g": 2.3
+  },
+  {
+    "Name": "Cheddar Cheese",
+    "CaloriesPer100g": 402,
+    "ProteinPer100g": 25,
+    "CarbsPer100g": 1,
+    "FatPer100g": 33
+  },
+  {
+    "Name": "Rice (white, cooked)",
+    "CaloriesPer100g": 130,
+    "ProteinPer100g": 2.7,
+    "CarbsPer100g": 28,
+    "FatPer100g": 0.3
+  },
+  {
+    "Name": "Brown Rice (cooked)",
+    "CaloriesPer100g": 111,
+    "ProteinPer100g": 2.6,
+    "CarbsPer100g": 23,
+    "FatPer100g": 0.9
+  },
+  {
+    "Name": "Quinoa (cooked)",
+    "CaloriesPer100g": 120,
+    "ProteinPer100g": 4.4,
+    "CarbsPer100g": 21,
+    "FatPer100g": 1.9
+  },
+  {
+    "Name": "Pasta (cooked)",
+    "CaloriesPer100g": 158,
+    "ProteinPer100g": 5.8,
+    "CarbsPer100g": 31,
+    "FatPer100g": 0.9
+  },
+  {
+    "Name": "Bread (white)",
+    "CaloriesPer100g": 265,
+    "ProteinPer100g": 9,
+    "CarbsPer100g": 49,
+    "FatPer100g": 3
+  },
+  {
+    "Name": "Oats (rolled, dry)",
+    "CaloriesPer100g": 389,
+    "ProteinPer100g": 17,
+    "CarbsPer100g": 66,
+    "FatPer100g": 7
+  },
+  {
+    "Name": "Almonds",
+    "CaloriesPer100g": 579,
+    "ProteinPer100g": 21,
+    "CarbsPer100g": 22,
+    "FatPer100g": 50
+  },
+  {
+    "Name": "Peanuts",
+    "CaloriesPer100g": 567,
+    "ProteinPer100g": 26,
+    "CarbsPer100g": 16,
+    "FatPer100g": 49
+  },
+  {
+    "Name": "Peanut Butter",
+    "CaloriesPer100g": 588,
+    "ProteinPer100g": 25,
+    "CarbsPer100g": 20,
+    "FatPer100g": 50
+  },
+  {
+    "Name": "Olive Oil",
+    "CaloriesPer100g": 884,
+    "ProteinPer100g": 0,
+    "CarbsPer100g": 0,
+    "FatPer100g": 100
+  },
+  {
+    "Name": "Butter",
+    "CaloriesPer100g": 717,
+    "ProteinPer100g": 0.9,
+    "CarbsPer100g": 0.1,
+    "FatPer100g": 81
+  }
+  // Add more here (e.g., from USDA FoodData Central for accuracy)
+]
