@@ -1,37 +1,24 @@
-﻿using CalorieTracker.data.Services;
+﻿using System;
+using System.Diagnostics;
+using CalorieTracker.data.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CalorieTracker
 {
     public partial class App : Application
     {
-        private readonly IDatabaseService _databaseService;
-        public App(IDatabaseService databaseService)
+        private readonly IServiceProvider _serviceProvider;
+        public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-            _databaseService = databaseService;
+            _serviceProvider = serviceProvider;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Window(new AppShell());
-
-            // Handle initialization when the window is created
-            window.Created += async (s, e) =>
-            {
-                try
-                {
-                    await _databaseService.InitializeAsync();
-                }
-                catch (Exception ex)
-                {
-                    // If DB fails, you can redirect to an error page 
-                    // or show a platform-specific alert
-                    Debug.WriteLine($"Startup Error: {ex.Message}");
-                }
-            };
-
-            return window;
+            // Resolve the LoadingPage from DI
+            var loadingPage = _serviceProvider.GetRequiredService<Views.LoadingPage>();
+            return new Window(loadingPage);
         }
     }
 }

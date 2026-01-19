@@ -3,12 +3,16 @@
     x:Class="CalorieTracker.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:CalorieTracker.Views"
     xmlns:local="clr-namespace:CalorieTracker"
     Title="CalorieTracker">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent Title="Home"
+                      Icon="home_icon.png" 
+                      ContentTemplate="{DataTemplate views:DashboardPage}"
+                      Route="Dashboard" />
+
+    </TabBar>
 
 </Shell>

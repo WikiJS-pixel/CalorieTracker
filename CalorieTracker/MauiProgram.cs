@@ -2,6 +2,7 @@
 using CalorieTracker.Data;
 using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Services;
+using CommunityToolkit.Maui;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,7 @@ namespace CalorieTracker
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -46,9 +48,10 @@ namespace CalorieTracker
             builder.Services.AddSingleton<IFoodDataSeeder, MauiFoodDataSeeder>();
 
             // 5. Register ViewModels and Views (MAUI Project)
-            // Ensure you have these classes created
-            // builder.Services.AddTransient<MainPage>();
-            // builder.Services.AddTransient<MainViewModel>();
+            builder.Services.AddTransient<Views.LoadingPage>();
+            builder.Services.AddTransient<ViewModels.LoadingViewModel>();
+            builder.Services.AddTransient<Views.DashboardPage>();
+            builder.Services.AddTransient<ViewModels.DashboardViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();

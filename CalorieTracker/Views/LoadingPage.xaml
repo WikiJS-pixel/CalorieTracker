@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CalorieTracker.ViewModels"
+             x:Class="CalorieTracker.Views.LoadingPage"
+             Title="LoadingPage"
+             BackgroundColor="{StaticResource Primary}"
+             x:DataType="vm:LoadingViewModel">
+    <Grid>
+        <VerticalStackLayout VerticalOptions="Center" 
+                             Spacing="20"
+                             IsVisible="{Binding IsBusy}">
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               Color="White" 
+                               HeightRequest="50"/>
+
+            <Label Text="Setting up your kitchen..." 
+                   TextColor="White" 
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout VerticalOptions="Center" 
+                             Spacing="20" 
+                             Padding="30"
+                             IsVisible="{Binding IsError}">
+
+            <Label Text="⚠️" 
+                   FontSize="60" 
+                   HorizontalOptions="Center"/>
+
+            <Label Text="Oops!" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   TextColor="White" 
+                   HorizontalOptions="Center"/>
+
+            <Label Text="{Binding ErrorMessage}" 
+                   TextColor="#FFCCCC" 
+                   HorizontalOptions="Center" 
+                   HorizontalTextAlignment="Center"/>
+
+            <Button Text="Try Again" 
+                    Command="{Binding RetryCommand}"
+                    BackgroundColor="White"
+                    TextColor="{StaticResource Primary}"
+                    CornerRadius="20"
+                    Margin="0,20,0,0"
+                    HorizontalOptions="Center"
+                    WidthRequest="200"/>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

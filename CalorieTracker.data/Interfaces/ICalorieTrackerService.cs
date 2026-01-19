@@ -8,6 +8,7 @@ namespace CalorieTracker.Data.Interfaces
     {
         Task<DailySummaryWithGoals> GetTodaySummaryWithGoalsAsync();
         Task<DailySummaryWithGoals> GetDateSummaryWithGoalsAsync(DateTime date);
+        Task<DailySummary> GetDailySummaryAsync(DateTime date);
         Task<MealEntry> LogMealAsync(Food food, double amountGrams, MealType mealType, string? notes = null);
         Task<UserProgress> GetUserProgressAsync(DateTime startDate, DateTime endDate);
     }

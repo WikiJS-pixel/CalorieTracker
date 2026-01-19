@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CalorieTracker.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="CalorieTracker.Views.DashboardPage"
+             Title="Today's Progress"
+             BackgroundColor="{StaticResource Primary}"
+             x:DataType="vm:DashboardViewModel">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="Appearing"
+                                        Command="{Binding LoadDashboardCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto, *" Padding="20">
+        <Frame Grid.Row="0" CornerRadius="15" BackgroundColor="White">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Calories Remaining" 
+                       HorizontalOptions="Center"
+                       TextColor="Gray"/>
+
+                <Label Text="{Binding RemainingCalories}" 
+                       FontSize="40" 
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="{StaticResource Primary}"/>
+
+                <ProgressBar Progress="{Binding CurrentCalories}" 
+                             ProgressColor="{StaticResource Primary}"/>
+
+                <Label Text="{Binding CalorieGoal, StringFormat='Goal: {0}'}" 
+                       HorizontalOptions="Center" 
+                       FontSize="12"/>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentPage>

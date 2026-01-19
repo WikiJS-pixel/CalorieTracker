@@ -23,6 +23,12 @@ namespace CalorieTracker.data.Services
             _foodService = foodService;
         }
 
+        public async Task<DailySummary> GetDailySummaryAsync(DateTime date)
+        {
+            var result = await GetDateSummaryWithGoalsAsync(date);
+            return result.Summary;
+        }
+
         public async Task<DailySummaryWithGoals> GetTodaySummaryWithGoalsAsync()
         {
             return await GetDateSummaryWithGoalsAsync(DateTime.UtcNow.Date);
@@ -46,6 +52,11 @@ namespace CalorieTracker.data.Services
 
         public async Task<MealEntry> LogMealAsync(Food food, double amountGrams, MealType mealType, string? notes = null)
         {
+            ArgumentNullException.ThrowIfNull(food);
+
+            if (amountGrams <= 0)
+                throw new ArgumentException("Amount must be greater than 0", nameof(amountGrams));
+
             var entry = new MealEntry
             {
                 FoodId = food.Id,
@@ -71,11 +82,12 @@ namespace CalorieTracker.data.Services
             progress.TotalProtein = totals.Protein;
 
             // Get weight at start and end of period
-            var startWeightLog = await _userProfileService.GetWeightHistoryAsync(startDate, startDate.AddDays(1))
-                .ContinueWith(t => t.Result.FirstOrDefault());
+            var startWeightLogs = await _userProfileService.GetWeightHistoryAsync(startDate, startDate.AddDays(1));
 
-            var endWeightLog = await _userProfileService.GetWeightHistoryAsync(endDate, endDate.AddDays(1))
-                .ContinueWith(t => t.Result.FirstOrDefault());
+            var endWeightLogs = await _userProfileService.GetWeightHistoryAsync(endDate, endDate.AddDays(1));
+
+            var startWeightLog = startWeightLogs?.FirstOrDefault();
+            var endWeightLog = endWeightLogs?.FirstOrDefault();
 
             if (startWeightLog != null && endWeightLog != null)
             {
@@ -83,12 +95,24 @@ namespace CalorieTracker.data.Services
                 progress.EndingWeight = endWeightLog.WeightKg;
                 progress.WeightChange = endWeightLog.WeightKg - startWeightLog.WeightKg;
             }
+            else if (startWeightLog != null)
+            {
+                progress.StartingWeight = startWeightLog.WeightKg;
+            }
+            else if (endWeightLog != null)
+            {
+                progress.EndingWeight = endWeightLog.WeightKg;
+            }
 
             // Calculate average daily calories
             var days = (endDate - startDate).TotalDays;
             if (days > 0)
             {
                 progress.AverageDailyCalories = totals.Calories / days;
+            }
+            else if (totals.Calories > 0)
+            {
+                progress.AverageDailyCalories = totals.Calories;
             }
 
             return progress;
