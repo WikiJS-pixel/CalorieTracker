@@ -1,4 +1,5 @@
-﻿using CalorieTracker.Data;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.Data;
 using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,15 +17,18 @@ namespace CalorieTracker.data.Services
         private readonly AppDbContext _context;
         private readonly ILogger<DatabaseService> _logger;
         private readonly IFoodDataSeeder _foodDataSeeder;
+        private readonly IWeightService _weightService;
 
         public DatabaseService(
             AppDbContext context,
             ILogger<DatabaseService> logger,
-            IFoodDataSeeder foodDataSeeder)
+            IFoodDataSeeder foodDataSeeder,
+            IWeightService weightService)
         {
             _context = context;
             _logger = logger;
             _foodDataSeeder = foodDataSeeder;
+            _weightService = weightService;
         }
 
         public async Task InitializeAsync()
@@ -36,6 +40,9 @@ namespace CalorieTracker.data.Services
 
                 // 2. Seed initial data (foods from JSON)
                 await SeedFoodDataAsync();
+
+                // 3. Seed weight log for single user
+                await SeedInitialWeightLogAsync();
 
                 _logger.LogInformation("Database initialized successfully");
             }
@@ -68,22 +75,22 @@ namespace CalorieTracker.data.Services
                     _logger.LogError(ex, "Error seeding food data");
                 }
             }
+        }
 
+        private async Task SeedInitialWeightLogAsync()
+        {
+            var currentWeight = await _weightService.GetCurrentWeightAsync();
             // Seed initial weight log if none exists
-            if (!await _context.WeightLogs.AnyAsync())
+            if (currentWeight == null)
             {
-                var userProfile = await _context.UserProfiles.FirstOrDefaultAsync();
-                if (userProfile != null)
+                await _weightService.AddWeightLogAsync(new WeightLog
                 {
-                    await _context.WeightLogs.AddAsync(new WeightLog
-                    {
-                        UserProfileId = userProfile.Id,
-                        WeightKg = 70.0, // Default starting weight
-                        LogDate = DateTime.UtcNow,
-                        Notes = "Initial weight"
-                    });
-                    await _context.SaveChangesAsync();
-                }
+                    WeightKg = 70.0,
+                    LogDate = DateTime.UtcNow,
+                    Notes = "Initial weight"
+                });
+
+                _logger.LogInformation("Seeded initial weight log");
             }
         }
     }

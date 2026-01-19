@@ -17,49 +17,16 @@ namespace CalorieTracker.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            // Configure soft delete filter for Food
+            // Only configure Food -> MealEntry relationship (for soft delete)
             modelBuilder.Entity<Food>()
                 .HasQueryFilter(f => !f.IsDeleted);
-
-            // Configure relationships and indexes
-            modelBuilder.Entity<MealEntry>()
-                .HasOne(m => m.Food)
-                .WithMany()
-                .HasForeignKey(m => m.FoodId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<MealEntry>()
-                .HasOne(m => m.UserProfile)
-                .WithMany()
-                .HasForeignKey(m => m.UserProfileId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<WeightLog>()
-                .HasOne(w => w.UserProfile)
-                .WithMany()
-                .HasForeignKey(w => w.UserProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<UserSettings>()
-                .HasOne(us => us.UserProfile)
-                .WithOne()
-                .HasForeignKey<UserSettings>(us => us.UserProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             // Add indexes for performance
             modelBuilder.Entity<MealEntry>()
                 .HasIndex(m => m.EntryDate);
 
-            modelBuilder.Entity<MealEntry>()
-                .HasIndex(m => m.UserProfileId);
-
             modelBuilder.Entity<WeightLog>()
                 .HasIndex(w => w.LogDate);
-
-            modelBuilder.Entity<WeightLog>()
-                .HasIndex(w => w.UserProfileId);
 
             // Ensure only one UserProfile exists
             modelBuilder.Entity<UserProfile>()
@@ -74,6 +41,24 @@ namespace CalorieTracker.Data
                     WeightGoal = WeightGoal.Maintain,
                     WeightChangeRateKgPerWeek = 0.5
                 });
+
+            // Seed single user settings
+            modelBuilder.Entity<UserSettings>()
+                .HasData(new UserSettings
+                {
+                    Id = 1,
+                    ProteinPercentage = 25,
+                    CarbsPercentage = 50,
+                    FatPercentage = 25,
+                    UseMetricSystem = true,
+                    Theme = "Light",
+                    TrackMacros = true,
+                    TrackWater = false,
+                    EnableMealReminders = true,
+                    MealReminderTime = new TimeSpan(12, 0, 0)
+                });
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

@@ -19,6 +19,9 @@ namespace CalorieTracker.ViewModels
         private double _remainingCalories;
 
         [ObservableProperty]
+        private double _progressPercentage; // 0.0 to 1.0
+
+        [ObservableProperty]
         private bool _isBusy;
 
         public DashboardViewModel(ICalorieTrackerService trackerService)
@@ -39,6 +42,7 @@ namespace CalorieTracker.ViewModels
                 CurrentCalories = summary.TotalCalories;
                 CalorieGoal = summary.TargetCalories;
                 RemainingCalories = CalorieGoal - CurrentCalories;
+                ProgressPercentage = CalorieGoal > 0 ? Math.Min(1.0, CurrentCalories / CalorieGoal) : 0;
             }
             catch (Exception ex)
             {

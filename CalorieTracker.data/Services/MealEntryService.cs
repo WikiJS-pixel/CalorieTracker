@@ -32,10 +32,7 @@ namespace CalorieTracker.data.Services
                 if (food.IsDeleted)
                     throw new InvalidOperationException($"Food '{food.Name}' is deleted and cannot be used");
 
-                // Ensure user profile exists
-                entry.UserProfileId = 1;
                 entry.EntryDate = DateTime.UtcNow;
-
                 await _context.MealEntries.AddAsync(entry);
                 await _context.SaveChangesAsync();
 
@@ -55,7 +52,7 @@ namespace CalorieTracker.data.Services
             {
                 return await _context.MealEntries
                     .Include(m => m.Food)
-                    .FirstOrDefaultAsync(m => m.Id == id && m.UserProfileId == 1);
+                    .FirstOrDefaultAsync(m => m.Id == id);
             }
             catch (Exception ex)
             {
@@ -69,7 +66,7 @@ namespace CalorieTracker.data.Services
             try
             {
                 var existingEntry = await _context.MealEntries
-                    .FirstOrDefaultAsync(m => m.Id == entry.Id && m.UserProfileId == 1);
+                    .FirstOrDefaultAsync(m => m.Id == entry.Id);
 
                 if (existingEntry == null)
                     return false;
@@ -110,7 +107,7 @@ namespace CalorieTracker.data.Services
             try
             {
                 var entry = await _context.MealEntries
-                    .FirstOrDefaultAsync(m => m.Id == id && m.UserProfileId == 1);
+                    .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (entry == null)
                     return false;
@@ -137,9 +134,7 @@ namespace CalorieTracker.data.Services
 
                 return await _context.MealEntries
                     .Include(m => m.Food)
-                    .Where(m => m.UserProfileId == 1 &&
-                               m.EntryDate >= startDate &&
-                               m.EntryDate <= endDate)
+                    .Where(m => m.EntryDate >= startDate && m.EntryDate <= endDate)
                     .OrderBy(m => m.MealType)
                     .ThenBy(m => m.EntryDate)
                     .ToListAsync();
@@ -157,9 +152,7 @@ namespace CalorieTracker.data.Services
             {
                 return await _context.MealEntries
                     .Include(m => m.Food)
-                    .Where(m => m.UserProfileId == 1 &&
-                               m.EntryDate >= startDate &&
-                               m.EntryDate <= endDate)
+                    .Where(m => m.EntryDate >= startDate && m.EntryDate <= endDate)
                     .OrderByDescending(m => m.EntryDate)
                     .ToListAsync();
             }

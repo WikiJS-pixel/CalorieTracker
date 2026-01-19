@@ -7,18 +7,14 @@ namespace CalorieTracker.Data.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        public int UserProfileId { get; set; }
-        public UserProfile UserProfile { get; set; } = null!;
-
         public DateTime EntryDate { get; set; } = DateTime.UtcNow;
 
         [MaxLength(50)]
         public MealType MealType { get; set; } = MealType.Snack; // Breakfast, Lunch, Dinner, Snack
 
         [Required]
-        public int FoodId { get; set; }
-        public Food Food { get; set; } = null!;
+        public int? FoodId { get; set; }
+        public Food? Food { get; set; }
 
         [Range(0.1, 5000, ErrorMessage = "Amount must be between 0.1 and 5000 grams")]
         public double AmountGrams { get; set; }

@@ -7,10 +7,6 @@ namespace CalorieTracker.Data.Models
         [Key]
         public int Id { get; set; } = 1; // Tied to UserProfile.Id = 1
 
-        [Required]
-        public int UserProfileId { get; set; } = 1;
-        public virtual UserProfile UserProfile { get; set; } = null!;
-
         // Macro distribution
         [Range(0, 100, ErrorMessage = "Protein percentage must be between 0 and 100")]
         public double ProteinPercentage { get; set; } = 25;

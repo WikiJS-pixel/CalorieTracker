@@ -14,13 +14,17 @@
     </ContentPage.Behaviors>
 
     <Grid RowDefinitions="Auto, *" Padding="20">
-        <Frame Grid.Row="0" CornerRadius="15" BackgroundColor="White">
-            <VerticalStackLayout Spacing="10">
+        <Border Grid.Row="0" 
+                Stroke="Transparent"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 15"
+                BackgroundColor="White">
+            <VerticalStackLayout Spacing="10" Padding="15">
                 <Label Text="Calories Remaining" 
                        HorizontalOptions="Center"
                        TextColor="Gray"/>
 
-                <Label Text="{Binding RemainingCalories}" 
+                <Label Text="{Binding RemainingCalories, StringFormat='{0:F0}'}" 
                        FontSize="40" 
                        FontAttributes="Bold"
                        HorizontalOptions="Center"
@@ -29,10 +33,10 @@
                 <ProgressBar Progress="{Binding CurrentCalories}" 
                              ProgressColor="{StaticResource Primary}"/>
 
-                <Label Text="{Binding CalorieGoal, StringFormat='Goal: {0}'}" 
+                <Label Text="{Binding CalorieGoal, StringFormat='Goal: {0:F0}'}" 
                        HorizontalOptions="Center" 
                        FontSize="12"/>
             </VerticalStackLayout>
-        </Frame>
+        </Border>
     </Grid>
 </ContentPage>

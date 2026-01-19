@@ -1,4 +1,5 @@
-﻿using CalorieTracker.data.Services;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Services;
 using CalorieTracker.Data;
 using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Services;
@@ -42,6 +43,7 @@ namespace CalorieTracker
             builder.Services.AddScoped<IGoalCalculationService, GoalCalculationService>();
             builder.Services.AddScoped<IMealEntryService, MealEntryService>();
             builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+            builder.Services.AddScoped<IWeightService, WeightService>();
 
             // 4. Register MAUI-Specific Services (Moved from Data)
             builder.Services.AddSingleton<INavigationService, NavigationService>();

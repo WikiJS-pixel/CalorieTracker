@@ -7,10 +7,6 @@ namespace CalorieTracker.Data.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        public int UserProfileId { get; set; }
-        public UserProfile UserProfile { get; set; } = null!;
-
         [Range(20, 300, ErrorMessage = "Weight must be between 20 and 300 kg")]
         public double WeightKg { get; set; }
 
