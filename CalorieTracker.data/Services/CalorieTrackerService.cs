@@ -1,6 +1,8 @@
-﻿using CalorieTracker.Data.DTOs;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.Data.DTOs;
 using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Data.Models;
+using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.data.Services
 {
@@ -8,19 +10,19 @@ namespace CalorieTracker.data.Services
     {
         private readonly IMealEntryService _mealEntryService;
         private readonly IGoalCalculationService _goalCalculationService;
-        private readonly IUserProfileService _userProfileService;
         private readonly IFoodService _foodService;
+        private readonly IWeightService _weightService;
 
         public CalorieTrackerService(
             IMealEntryService mealEntryService,
             IGoalCalculationService goalCalculationService,
-            IUserProfileService userProfileService,
-            IFoodService foodService)
+            IFoodService foodService,
+            IWeightService weightService)
         {
             _mealEntryService = mealEntryService;
             _goalCalculationService = goalCalculationService;
-            _userProfileService = userProfileService;
             _foodService = foodService;
+            _weightService = weightService;
         }
 
         public async Task<DailySummary> GetDailySummaryAsync(DateTime date)
@@ -76,18 +78,14 @@ namespace CalorieTracker.data.Services
                 EndDate = endDate
             };
 
-            // Get nutrition totals for the period
+            // Get nutrition totals
             var totals = await _mealEntryService.GetNutritionTotalsAsync(startDate, endDate);
             progress.TotalCalories = totals.Calories;
             progress.TotalProtein = totals.Protein;
 
-            // Get weight at start and end of period
-            var startWeightLogs = await _userProfileService.GetWeightHistoryAsync(startDate, startDate.AddDays(1));
-
-            var endWeightLogs = await _userProfileService.GetWeightHistoryAsync(endDate, endDate.AddDays(1));
-
-            var startWeightLog = startWeightLogs?.FirstOrDefault();
-            var endWeightLog = endWeightLogs?.FirstOrDefault();
+            // Get weight at start and end
+            var startWeightLog = await _weightService.GetWeightLogByDateAsync(startDate);
+            var endWeightLog = await _weightService.GetWeightLogByDateAsync(endDate);
 
             if (startWeightLog != null && endWeightLog != null)
             {
@@ -95,24 +93,12 @@ namespace CalorieTracker.data.Services
                 progress.EndingWeight = endWeightLog.WeightKg;
                 progress.WeightChange = endWeightLog.WeightKg - startWeightLog.WeightKg;
             }
-            else if (startWeightLog != null)
-            {
-                progress.StartingWeight = startWeightLog.WeightKg;
-            }
-            else if (endWeightLog != null)
-            {
-                progress.EndingWeight = endWeightLog.WeightKg;
-            }
 
             // Calculate average daily calories
             var days = (endDate - startDate).TotalDays;
             if (days > 0)
             {
                 progress.AverageDailyCalories = totals.Calories / days;
-            }
-            else if (totals.Calories > 0)
-            {
-                progress.AverageDailyCalories = totals.Calories;
             }
 
             return progress;

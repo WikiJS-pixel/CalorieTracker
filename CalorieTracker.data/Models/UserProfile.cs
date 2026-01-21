@@ -34,7 +34,7 @@ namespace CalorieTracker.Data.Models
         [Range(-2.0, 2.0, ErrorMessage = "Weight change rate must be between -2 and 2 kg/week")]
         public double WeightChangeRateKgPerWeek { get; set; } = 0.5; // Default 0.5 kg/week
 
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedDate { get; set; } 
         public DateTime? LastUpdatedDate { get; set; }
 
         public UserSettings? UserSettings { get; set; }

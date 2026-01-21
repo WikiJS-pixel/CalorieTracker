@@ -1,4 +1,5 @@
-﻿using CalorieTracker.Data.Interfaces;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Data.Models;
 using Microsoft.Extensions.Logging;
 
@@ -7,13 +8,16 @@ namespace CalorieTracker.data.Services
     public class GoalCalculationService : IGoalCalculationService
     {
         private readonly IUserProfileService _userProfileService;
+        private readonly IWeightService _weightService;
         private readonly ILogger<GoalCalculationService> _logger;
 
         public GoalCalculationService(
             IUserProfileService userProfileService,
-            ILogger<GoalCalculationService> logger)
+            ILogger<GoalCalculationService> logger,
+            IWeightService weightService)
         {
             _userProfileService = userProfileService;
+            _weightService = weightService;
             _logger = logger;
         }
 
@@ -149,7 +153,7 @@ namespace CalorieTracker.data.Services
             try
             {
                 // Get current weight
-                var currentWeight = await _userProfileService.GetCurrentWeightAsync();
+                var currentWeight = await _weightService.GetCurrentWeightAsync();
                 if (!currentWeight.HasValue)
                 {
                     throw new InvalidOperationException("Current weight not available");

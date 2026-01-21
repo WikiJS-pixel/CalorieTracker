@@ -1,4 +1,5 @@
-﻿using CalorieTracker.Data;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.Data;
 using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +11,14 @@ namespace CalorieTracker.data.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UserProfileService> _logger;
+        private readonly IWeightService _weightService;
 
-        public UserProfileService(AppDbContext context, ILogger<UserProfileService> logger)
+        public UserProfileService(AppDbContext context, ILogger<UserProfileService> logger,
+            IWeightService weightService)
         {
             _context = context;
             _logger = logger;
+            _weightService = weightService;
         }
 
         public async Task<UserProfile> GetUserProfileAsync()
@@ -22,7 +26,6 @@ namespace CalorieTracker.data.Services
             try
             {
                 var profile = await _context.UserProfiles
-                    .Include(p => p.WeightLogs.OrderByDescending(w => w.LogDate).Take(10))
                     .FirstOrDefaultAsync(p => p.Id == 1);
 
                 if (profile == null)
@@ -88,74 +91,6 @@ namespace CalorieTracker.data.Services
             return age;
         }
 
-        public async Task<double?> GetCurrentWeightAsync()
-        {
-            var latestLog = await GetLatestWeightLogAsync();
-            return latestLog?.WeightKg;
-        }
-
-        public async Task<WeightLog> LogWeightAsync(double weightKg, string? notes = null)
-        {
-            try
-            {
-                var weightLog = new WeightLog
-                {
-                    UserProfileId = 1,
-                    WeightKg = weightKg,
-                    LogDate = DateTime.UtcNow,
-                    Notes = notes
-                };
-
-                await _context.WeightLogs.AddAsync(weightLog);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Logged weight: {Weight}kg", weightKg);
-                return weightLog;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error logging weight");
-                throw;
-            }
-        }
-
-        public async Task<List<WeightLog>> GetWeightHistoryAsync(DateTime? startDate = null, DateTime? endDate = null)
-        {
-            try
-            {
-                var query = _context.WeightLogs.Where(w => w.UserProfileId == 1);
-
-                if (startDate.HasValue)
-                    query = query.Where(w => w.LogDate >= startDate.Value);
-
-                if (endDate.HasValue)
-                    query = query.Where(w => w.LogDate <= endDate.Value);
-
-                return await query.OrderByDescending(w => w.LogDate).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting weight history");
-                throw;
-            }
-        }
-
-        public async Task<WeightLog?> GetLatestWeightLogAsync()
-        {
-            try
-            {
-                return await _context.WeightLogs
-                    .Where(w => w.UserProfileId == 1)
-                    .OrderByDescending(w => w.LogDate)
-                    .FirstOrDefaultAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting latest weight log");
-                return null;
-            }
-        }
-
         public async Task<UserSettings> GetUserSettingsAsync()
         {
             try
@@ -169,7 +104,6 @@ namespace CalorieTracker.data.Services
                     settings = new UserSettings
                     {
                         Id = 1,
-                        UserProfileId = 1,
                         ProteinPercentage = 25,
                         CarbsPercentage = 50,
                         FatPercentage = 25,
@@ -177,11 +111,14 @@ namespace CalorieTracker.data.Services
                         Theme = "Light",
                         TrackMacros = true,
                         EnableMealReminders = false,
+                        MealReminderTime = new TimeSpan(12, 0, 0),
                         CreatedDate = DateTime.UtcNow
                     };
 
                     await _context.UserSettings.AddAsync(settings);
                     await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Created default user settings");
                 }
 
                 return settings;
@@ -202,7 +139,6 @@ namespace CalorieTracker.data.Services
             {
                 // Ensure we're always updating the singleton settings
                 settings.Id = 1;
-                settings.UserProfileId = 1;
                 settings.LastUpdatedDate = DateTime.UtcNow;
 
                 // Validate percentages sum to 100 (or close)

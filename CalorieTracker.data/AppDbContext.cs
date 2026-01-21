@@ -39,7 +39,9 @@ namespace CalorieTracker.Data
                     HeightCm = 170,
                     ActivityLevel = ActivityLevel.ModeratelyActive,
                     WeightGoal = WeightGoal.Maintain,
-                    WeightChangeRateKgPerWeek = 0.5
+                    WeightChangeRateKgPerWeek = 0.5,
+                    CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    LastUpdatedDate = null 
                 });
 
             // Seed single user settings

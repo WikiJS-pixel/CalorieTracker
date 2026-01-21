@@ -32,7 +32,7 @@ namespace CalorieTracker.Data.Models
         public TimeSpan MealReminderTime { get; set; } = new TimeSpan(12, 0, 0);
         public bool EnableMealReminders { get; set; } = true;
 
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedDate { get; set; } = new DateTime(2026, 1, 1);
         public DateTime? LastUpdatedDate { get; set; }
     }
 }

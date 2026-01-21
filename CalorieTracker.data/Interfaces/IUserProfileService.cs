@@ -9,12 +9,6 @@ namespace CalorieTracker.Data.Interfaces
         Task<UserProfile> UpdateUserProfileAsync(UserProfile profile);
         Task<int> GetAgeAsync();
 
-        // Weight Management
-        Task<double?> GetCurrentWeightAsync();
-        Task<WeightLog> LogWeightAsync(double weightKg, string? notes = null);
-        Task<List<WeightLog>> GetWeightHistoryAsync(DateTime? startDate = null, DateTime? endDate = null);
-        Task<WeightLog?> GetLatestWeightLogAsync();
-
         // User Settings
         Task<UserSettings> GetUserSettingsAsync();
         Task<UserSettings> UpdateUserSettingsAsync(UserSettings settings);
