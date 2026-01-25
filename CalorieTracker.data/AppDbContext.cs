@@ -21,44 +21,16 @@ namespace CalorieTracker.Data
             modelBuilder.Entity<Food>()
                 .HasQueryFilter(f => !f.IsDeleted);
 
-            // Add indexes for performance
+            // Configure the relationship as optional
             modelBuilder.Entity<MealEntry>()
-                .HasIndex(m => m.EntryDate);
+                .HasOne(m => m.Food)
+                .WithMany()
+                .HasForeignKey(m => m.FoodId)
+                .OnDelete(DeleteBehavior.Restrict) // or NoAction
+                .IsRequired(false); // Mark as optional
 
             modelBuilder.Entity<WeightLog>()
                 .HasIndex(w => w.LogDate);
-
-            // Ensure only one UserProfile exists
-            modelBuilder.Entity<UserProfile>()
-                .HasData(new UserProfile
-                {
-                    Id = 1,
-                    Name = "Default User",
-                    BirthDate = new DateTime(1990, 1, 1),
-                    Gender = Gender.Other,
-                    HeightCm = 170,
-                    ActivityLevel = ActivityLevel.ModeratelyActive,
-                    WeightGoal = WeightGoal.Maintain,
-                    WeightChangeRateKgPerWeek = 0.5,
-                    CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    LastUpdatedDate = null 
-                });
-
-            // Seed single user settings
-            modelBuilder.Entity<UserSettings>()
-                .HasData(new UserSettings
-                {
-                    Id = 1,
-                    ProteinPercentage = 25,
-                    CarbsPercentage = 50,
-                    FatPercentage = 25,
-                    UseMetricSystem = true,
-                    Theme = "Light",
-                    TrackMacros = true,
-                    TrackWater = false,
-                    EnableMealReminders = true,
-                    MealReminderTime = new TimeSpan(12, 0, 0)
-                });
 
             base.OnModelCreating(modelBuilder);
         }

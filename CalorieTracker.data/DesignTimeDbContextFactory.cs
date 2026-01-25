@@ -10,10 +10,11 @@ namespace CalorieTracker.Data
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            // Use a simple connection string for design-time
-            const string connectionString = "Data Source=calorietracker.db";
+            // Use a fixed dev path (same folder as project or a subfolder)
+            var devPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dev_calorietracker.db");
+            // Or match runtime for local testing: but AppDataDirectory not available at design-time
 
-            optionsBuilder.UseSqlite(connectionString)
+            optionsBuilder.UseSqlite($"Data Source={devPath}")
                 .LogTo(Console.WriteLine, LogLevel.Information);
 
             return new AppDbContext(optionsBuilder.Options);

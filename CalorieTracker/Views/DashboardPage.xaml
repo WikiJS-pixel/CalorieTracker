@@ -30,7 +30,7 @@
                        HorizontalOptions="Center"
                        TextColor="{StaticResource Primary}"/>
 
-                <ProgressBar Progress="{Binding CurrentCalories}" 
+                <ProgressBar Progress="{Binding ProgressPercentage}" 
                              ProgressColor="{StaticResource Primary}"/>
 
                 <Label Text="{Binding CalorieGoal, StringFormat='Goal: {0:F0}'}" 

@@ -13,7 +13,7 @@ namespace CalorieTracker.Data.Models
         public MealType MealType { get; set; } = MealType.Snack; // Breakfast, Lunch, Dinner, Snack
 
         [Required]
-        public int? FoodId { get; set; }
+        public int FoodId { get; set; }
         public Food? Food { get; set; }
 
         [Range(0.1, 5000, ErrorMessage = "Amount must be between 0.1 and 5000 grams")]

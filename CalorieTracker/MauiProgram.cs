@@ -27,14 +27,18 @@ namespace CalorieTracker
             // On Mobile: /data/user/0/com.company.app/files/calories.db
             // On Windows: C:\Users\Name\AppData\Local\Packages\...
             string dbPath = Path.Combine(FileSystem.AppDataDirectory, "calorietracker.db");
+            System.Diagnostics.Debug.WriteLine($"Database path: {dbPath}");
+
+            // 2. Register AppDbContext with the dynamic path
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}")
+                .EnableSensitiveDataLogging() 
+                .LogTo(message => System.Diagnostics.Debug.WriteLine(message),
+                  LogLevel.Information)); 
 
             // Register the Generic DataService (Open Generic)
             // This allows you to inject IDataService<AnyEntity> anywhere
             builder.Services.AddScoped(typeof(IDataService<>), typeof(DataService<>));
-
-            // 2. Register AppDbContext with the dynamic path
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
 
             // 3. Register Data Services (from your library)
             builder.Services.AddScoped<IDatabaseService, DatabaseService>();
@@ -45,15 +49,19 @@ namespace CalorieTracker
             builder.Services.AddScoped<IUserProfileService, UserProfileService>();
             builder.Services.AddScoped<IWeightService, WeightService>();
 
-            // 4. Register MAUI-Specific Services (Moved from Data)
-            builder.Services.AddSingleton<INavigationService, NavigationService>();
+            // 4. Register MAUI-Specific Services
             builder.Services.AddSingleton<IFoodDataSeeder, MauiFoodDataSeeder>();
+            builder.Services.AddSingleton<INavigationService, NavigationService>();
+            builder.Services.AddSingleton<AppShell>();
 
             // 5. Register ViewModels and Views (MAUI Project)
             builder.Services.AddTransient<Views.LoadingPage>();
             builder.Services.AddTransient<ViewModels.LoadingViewModel>();
             builder.Services.AddTransient<Views.DashboardPage>();
             builder.Services.AddTransient<ViewModels.DashboardViewModel>();
+            builder.Services.AddTransient<Views.LogMealPage>();
+            builder.Services.AddTransient<Views.HistoryPage>();
+            builder.Services.AddTransient<Views.ProfilePage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

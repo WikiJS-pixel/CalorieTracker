@@ -1,4 +1,5 @@
 ﻿using CalorieTracker.data.Services;
+using CalorieTracker.Data.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -18,10 +19,9 @@ namespace CalorieTracker.ViewModels
         [ObservableProperty]
         private string _errorMessage = string.Empty;
 
-        public LoadingViewModel(IDatabaseService databaseService)
+        public LoadingViewModel(IDatabaseService databaseService)  // Update constructor
         {
             _databaseService = databaseService;
-            InitializeApp();
         }
 
         [RelayCommand]
@@ -30,7 +30,7 @@ namespace CalorieTracker.ViewModels
             await InitializeApp();
         }
 
-        private async Task InitializeApp()
+        public async Task InitializeApp()
         {
             // 1. Reset State to "Loading"
             IsBusy = true;
@@ -39,15 +39,14 @@ namespace CalorieTracker.ViewModels
 
             try
             {
-                // 2. Attempt Initialization (Database migration & Seeding)
-                // This mimics a "transaction", if it fails, we catch it below
+                // Add delay to see loading screen
+                await Task.Delay(2000); // 2 seconds
+
+                // Attempt Initialization (Database migration & Seeding)
                 await _databaseService.InitializeAsync();
 
-                // 3. Success! Swap the Main Page
-                if (Application.Current != null)
-                {
-                    Application.Current.Windows[0].Page = new AppShell();
-                }
+                // Navigate by setting the Window's Page to AppShell
+                await SwitchToAppShellAsync();
             }
             catch (Exception ex)
             {
@@ -57,6 +56,32 @@ namespace CalorieTracker.ViewModels
 
                 // Friendly error message for users, specific log for you
                 ErrorMessage = $"Unable to setup database.\nDetails: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Error: {ex}");
+            }
+        }
+
+        private async Task SwitchToAppShellAsync()
+        {
+            try
+            {
+                // Switch from LoadingPage to AppShell
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (Application.Current?.Windows.Count > 0)
+                    {
+                        // Replace the current page (LoadingPage) with AppShell
+                        Application.Current.Windows[0].Page = new AppShell();
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("No application window available");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SwitchToAppShellAsync Error: {ex}");
+                throw;
             }
         }
     }

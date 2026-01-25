@@ -18,7 +18,13 @@ namespace CalorieTracker
         {
             // Resolve the LoadingPage from DI
             var loadingPage = _serviceProvider.GetRequiredService<Views.LoadingPage>();
-            return new Window(loadingPage);
+            // Create window with LoadingPage
+            var window = new Window(loadingPage);
+
+            // Store window reference if needed
+            // You can use this later if needed
+
+            return window;
         }
     }
 }
