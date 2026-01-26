@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CalorieTracker.Views.Step3DietaryPrefs">
+    <StackLayout Spacing="30" Padding="20">
+        <Label Text="Macro preferences" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+        <Label Text="Adjust how your calories are split between macros" FontSize="16" HorizontalOptions="Center" />
+
+        <Label Text="Protein" />
+        <Slider Minimum="0" Maximum="100" Value="{Binding ProteinPercentage}" />
+        <Label Text="{Binding ProteinPercentage, StringFormat='{0:F0}%'}" HorizontalOptions="Center" />
+
+        <Label Text="Carbohydrates" />
+        <Slider Minimum="0" Maximum="100" Value="{Binding CarbsPercentage}" />
+        <Label Text="{Binding CarbsPercentage, StringFormat='{0:F0}%'}" HorizontalOptions="Center" />
+
+        <Label Text="Fat" />
+        <Slider Minimum="0" Maximum="100" Value="{Binding FatPercentage}" />
+        <Label Text="{Binding FatPercentage, StringFormat='{0:F0}%'}" HorizontalOptions="Center" />
+
+        <Label Text="{Binding MacroTotal}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+    </StackLayout>
+</ContentView>

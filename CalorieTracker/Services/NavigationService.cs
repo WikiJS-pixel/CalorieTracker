@@ -1,11 +1,11 @@
-﻿using CalorieTracker.Data.Interfaces;
-using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Models;
 
 namespace CalorieTracker.Services
 {
     public class NavigationService : INavigationService
     {
-        private readonly Dictionary<string, object> _parameters = new();
+        private readonly Dictionary<string, object> _parameters = [];
 
         public async Task NavigateToDashboardAsync()
         {

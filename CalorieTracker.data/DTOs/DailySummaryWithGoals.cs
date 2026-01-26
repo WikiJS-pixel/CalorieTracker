@@ -1,6 +1,6 @@
-﻿using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.Models;
 
-namespace CalorieTracker.Data.DTOs
+namespace CalorieTracker.data.DTOs
 {
     public class DailySummaryWithGoals
     {

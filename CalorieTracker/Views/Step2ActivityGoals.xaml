@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CalorieTracker.Views.Step2ActivityGoals">
+    <StackLayout Spacing="25" Padding="20">
+        <Label Text="Activity level &amp; weight goal" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+
+        <Label Text="How active are you?" FontSize="16" />
+        <Picker ItemsSource="{Binding ActivityLevelOptions}"
+                SelectedItem="{Binding ActivityLevel}" />
+
+        <Label Text="What is your weight goal?" FontSize="16" />
+        <Picker ItemsSource="{Binding WeightGoalOptions}"
+                SelectedItem="{Binding WeightGoal}" />
+
+        <StackLayout IsVisible="{Binding ShowWeightRate}" Spacing="10">
+            <Label Text="Desired rate (kg per week)" FontSize="16" />
+            <Entry Text="{Binding WeightChangeRateKgPerWeek}" Keyboard="Numeric" Placeholder="e.g. 0.5" />
+            <Label Text="Recommended: 0.5–1.0 for sustainable progress" FontSize="14" TextColor="Gray" />
+        </StackLayout>
+    </StackLayout>
+</ContentView>

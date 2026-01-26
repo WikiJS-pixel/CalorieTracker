@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:CalorieTracker.Views"
+             xmlns:converters="clr-namespace:CalorieTracker.Converters"
+             x:Class="CalorieTracker.Views.WizardPage"
+             Title="Setup Your Profile">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
+            <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+            <converters:StepToColorConverter x:Key="StepToColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Progress Indicator -->
+        <HorizontalStackLayout Grid.Row="0" 
+                               HorizontalOptions="Center" 
+                               Spacing="10" 
+                               Margin="20">
+            <BoxView WidthRequest="12" HeightRequest="12" 
+                     CornerRadius="6"
+                     Color="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=0}" />
+            <BoxView WidthRequest="12" HeightRequest="12" 
+                     CornerRadius="6"
+                     Color="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=1}" />
+            <BoxView WidthRequest="12" HeightRequest="12" 
+                     CornerRadius="6"
+                     Color="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=2}" />
+            <BoxView WidthRequest="12" HeightRequest="12" 
+                     CornerRadius="6"
+                     Color="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=3}" />
+            <BoxView WidthRequest="12" HeightRequest="12" 
+                     CornerRadius="6"
+                     Color="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=4}" />
+        </HorizontalStackLayout>
+
+        <!-- Steps Content -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="20">
+                <views:Step0PersonalInfo IsVisible="{Binding CurrentStep, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}" />
+                <views:Step1PhysicalStats IsVisible="{Binding CurrentStep, Converter={StaticResource IntToBoolConverter}, ConverterParameter=1}" />
+                <views:Step2ActivityGoals IsVisible="{Binding CurrentStep, Converter={StaticResource IntToBoolConverter}, ConverterParameter=2}" />
+                <views:Step3DietaryPrefs IsVisible="{Binding CurrentStep, Converter={StaticResource IntToBoolConverter}, ConverterParameter=3}" />
+                <views:Step4Preview IsVisible="{Binding CurrentStep, Converter={StaticResource IntToBoolConverter}, ConverterParameter=4}" />
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" Padding="20">
+            <Button Text="Back"
+                    Command="{Binding BackCommand}"
+                    IsVisible="{Binding CurrentStep, Converter={StaticResource GreaterThanZeroConverter}}"
+                    HorizontalOptions="Start" />
+            <Button Text="{Binding NextButtonText}"
+                    Command="{Binding NextCommand}"
+                    HorizontalOptions="End"
+                    BackgroundColor="#512BD4" 
+                    TextColor="White" />
+        </Grid>
+    </Grid>
+</ContentPage>

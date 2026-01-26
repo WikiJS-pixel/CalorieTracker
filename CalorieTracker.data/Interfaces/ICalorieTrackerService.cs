@@ -1,7 +1,7 @@
-﻿using CalorieTracker.Data.DTOs;
-using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.DTOs;
+using CalorieTracker.data.Models;
 
-namespace CalorieTracker.Data.Interfaces
+namespace CalorieTracker.data.Interfaces
 {
     // Facade service that combines common operations
     public interface ICalorieTrackerService

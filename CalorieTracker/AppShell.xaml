@@ -11,28 +11,28 @@
         <!-- Dashboard Tab -->
         <ShellContent 
             Title="Home"
-            Icon="tab_dashboard.png" 
+            Icon="dashboard.png"
             ContentTemplate="{DataTemplate views:DashboardPage}"
             Route="Dashboard" />
 
         <!-- Log Tab -->
         <ShellContent 
             Title="Log"
-            Icon="tab_log.png" 
+            Icon="restaurant.png" 
             ContentTemplate="{DataTemplate views:LogMealPage}"
             Route="LogMeal" />
 
         <!-- History Tab -->
         <ShellContent 
             Title="History"
-            Icon="tab_history.png" 
+            Icon="history.png" 
             ContentTemplate="{DataTemplate views:HistoryPage}"
             Route="History" />
 
         <!-- Profile Tab -->
         <ShellContent 
             Title="Profile"
-            Icon="tab_profile.png" 
+            Icon="profile.png" 
             ContentTemplate="{DataTemplate views:ProfilePage}"
             Route="Profile" />
     </TabBar>

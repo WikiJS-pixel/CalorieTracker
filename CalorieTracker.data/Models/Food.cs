@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 
-namespace CalorieTracker.Data.Models
+namespace CalorieTracker.data.Models
 {
     public class Food
     {

@@ -1,5 +1,6 @@
-﻿using CalorieTracker.data.Services;
-using CalorieTracker.Data.Interfaces;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Services;
+using CalorieTracker.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -8,6 +9,8 @@ namespace CalorieTracker.ViewModels
     public partial class LoadingViewModel : ObservableObject
     {
         private readonly IDatabaseService _databaseService;
+        private readonly IUserProfileService _userProfileService;
+        private readonly IServiceProvider _serviceProvider;
 
         // UI State Properties
         [ObservableProperty]
@@ -19,9 +22,13 @@ namespace CalorieTracker.ViewModels
         [ObservableProperty]
         private string _errorMessage = string.Empty;
 
-        public LoadingViewModel(IDatabaseService databaseService)  // Update constructor
+        public LoadingViewModel(IDatabaseService databaseService,
+            IUserProfileService userProfileService,
+            IServiceProvider serviceProvider)
         {
             _databaseService = databaseService;
+            _userProfileService = userProfileService;
+            _serviceProvider = serviceProvider;
         }
 
         [RelayCommand]
@@ -42,11 +49,15 @@ namespace CalorieTracker.ViewModels
                 // Add delay to see loading screen
                 await Task.Delay(2000); // 2 seconds
 
-                // Attempt Initialization (Database migration & Seeding)
-                await _databaseService.InitializeAsync();
-
-                // Navigate by setting the Window's Page to AppShell
-                await SwitchToAppShellAsync();
+                var profile = await _userProfileService.GetUserProfileAsync();
+                if (!profile.HasCompletedWizard)
+                {
+                    await SwitchToWizardAsync();
+                }
+                else
+                {
+                    await SwitchToAppShellAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -83,6 +94,18 @@ namespace CalorieTracker.ViewModels
                 System.Diagnostics.Debug.WriteLine($"SwitchToAppShellAsync Error: {ex}");
                 throw;
             }
+        }
+
+        private async Task SwitchToWizardAsync()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (Application.Current?.Windows.Count > 0)
+                {
+                    var wizardPage = _serviceProvider.GetRequiredService<WizardPage>();
+                    Application.Current.Windows[0].Page = wizardPage;
+                }
+            });
         }
     }
 }

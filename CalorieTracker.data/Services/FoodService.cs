@@ -1,6 +1,5 @@
-﻿using CalorieTracker.Data;
-using CalorieTracker.Data.Interfaces;
-using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

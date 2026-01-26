@@ -1,8 +1,6 @@
-﻿using CalorieTracker.data.Interfaces;
-using CalorieTracker.Data.DTOs;
-using CalorieTracker.Data.Interfaces;
-using CalorieTracker.Data.Models;
-using Microsoft.Extensions.Logging;
+﻿using CalorieTracker.data.DTOs;
+using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Models;
 
 namespace CalorieTracker.data.Services
 {

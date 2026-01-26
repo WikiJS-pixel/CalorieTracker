@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
-using CalorieTracker.Data.Interfaces;
-using CalorieTracker.Data.Models;
+using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Models;
 using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.Services

@@ -1,8 +1,7 @@
 ﻿using CalorieTracker.data.Interfaces;
-using CalorieTracker.Data;
-using CalorieTracker.Data.Models;
-using Microsoft.Extensions.Logging;
+using CalorieTracker.data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.data.Services
 {

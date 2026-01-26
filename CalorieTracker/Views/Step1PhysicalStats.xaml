@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CalorieTracker.Views.Step1PhysicalStats">
+    <StackLayout Spacing="25" Padding="20">
+        <Label Text="Your current measurements" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+        <Label Text="We'll use metric units (cm/kg)" FontSize="16" HorizontalOptions="Center" />
+
+        <Label Text="Height (cm)" FontSize="16" />
+        <Entry Text="{Binding HeightCm}" Keyboard="Numeric" Placeholder="e.g. 170" />
+
+        <Label Text="Current weight (kg)" FontSize="16" />
+        <Entry Text="{Binding CurrentWeightKg}" Keyboard="Numeric" Placeholder="e.g. 70" />
+    </StackLayout>
+</ContentView>

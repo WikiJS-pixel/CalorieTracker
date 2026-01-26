@@ -1,7 +1,6 @@
-﻿using CalorieTracker.data.Interfaces;
+﻿using CalorieTracker.data;
+using CalorieTracker.data.Interfaces;
 using CalorieTracker.data.Services;
-using CalorieTracker.Data;
-using CalorieTracker.Data.Interfaces;
 using CalorieTracker.Services;
 using CommunityToolkit.Maui;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +61,13 @@ namespace CalorieTracker
             builder.Services.AddTransient<Views.LogMealPage>();
             builder.Services.AddTransient<Views.HistoryPage>();
             builder.Services.AddTransient<Views.ProfilePage>();
+            builder.Services.AddTransient<Views.WizardPage>();
+            builder.Services.AddTransient<ViewModels.WizardViewModel>();
+            builder.Services.AddTransient<Views.Step0PersonalInfo>();
+            builder.Services.AddTransient<Views.Step1PhysicalStats>();
+            builder.Services.AddTransient<Views.Step2ActivityGoals>();
+            builder.Services.AddTransient<Views.Step3DietaryPrefs>();
+            builder.Services.AddTransient<Views.Step4Preview>();
 
 #if DEBUG
             builder.Logging.AddDebug();

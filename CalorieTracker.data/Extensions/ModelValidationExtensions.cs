@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CalorieTracker.Data.Extensions
+namespace CalorieTracker.data.Extensions
 {
     public static class ModelValidationExtensions
     {

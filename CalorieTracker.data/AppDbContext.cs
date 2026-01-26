@@ -1,7 +1,7 @@
-﻿using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CalorieTracker.Data
+namespace CalorieTracker.data
 {
     public class AppDbContext : DbContext
     {

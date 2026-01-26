@@ -1,4 +1,4 @@
-﻿using CalorieTracker.Data.Models;
+﻿using CalorieTracker.data.Models;
 
 namespace CalorieTracker.data.Interfaces
 {

@@ -1,4 +1,4 @@
-﻿using CalorieTracker.Data.Interfaces;
+﻿using CalorieTracker.data.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 

@@ -1,5 +1,5 @@
 ﻿
-namespace CalorieTracker.Data.Models
+namespace CalorieTracker.data.Models
 {
     public enum WeightGoal
     {

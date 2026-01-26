@@ -1,4 +1,4 @@
-﻿namespace CalorieTracker.Data.DTOs
+﻿namespace CalorieTracker.data.DTOs
 {
     public class UserProgress
     {

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CalorieTracker.Views.Step4Preview">
+    <ScrollView>
+        <StackLayout Spacing="30" Padding="20">
+            <Label Text="Your personalized goals" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Label Text="Based on your info and standard formulas (Mifflin-St Jeor)" FontSize="16" HorizontalOptions="Center" />
+
+            <Frame BackgroundColor="#F0F0F0" Padding="20" CornerRadius="15">
+                <StackLayout Spacing="15">
+                    <Label Text="{Binding PreviewGoals.TargetCalories, StringFormat='Daily calories: {0:F0}'}" FontSize="20" FontAttributes="Bold" />
+                    <Label Text="{Binding PreviewGoals.TargetProtein, StringFormat='Protein: {0:F0}g ({Binding ProteinPercentage, StringFormat={0:F0}}%)'}" FontSize="18" />
+                    <Label Text="{Binding PreviewGoals.TargetCarbs, StringFormat='Carbs: {0:F0}g ({Binding CarbsPercentage, StringFormat={0:F0}}%)'}" FontSize="18" />
+                    <Label Text="{Binding PreviewGoals.TargetFat, StringFormat='Fat: {0:F0}g ({Binding FatPercentage, StringFormat={0:F0}}%)'}" FontSize="18" />
+                </StackLayout>
+            </Frame>
+
+            <Label Text="You can always adjust these later in Profile settings" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
+        </StackLayout>
+    </ScrollView>
+</ContentView>

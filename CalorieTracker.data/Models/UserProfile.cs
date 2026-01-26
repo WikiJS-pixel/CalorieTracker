@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CalorieTracker.Data.Models
+namespace CalorieTracker.data.Models
 {
     public class UserProfile
     {
@@ -36,6 +35,9 @@ namespace CalorieTracker.Data.Models
 
         public DateTime CreatedDate { get; set; } 
         public DateTime? LastUpdatedDate { get; set; }
+
+        public bool HasCompletedWizard { get; set; } = false;
+        public DateTime? WizardCompletedDate { get; set; }
 
         public UserSettings? UserSettings { get; set; }
     }

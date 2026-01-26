@@ -1,7 +1,5 @@
 ﻿using CalorieTracker.data.Interfaces;
-using CalorieTracker.Data;
-using CalorieTracker.Data.Interfaces;
-using CalorieTracker.Data.Models;
+using CalorieTracker.data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -64,6 +62,7 @@ namespace CalorieTracker.data.Services
                 var defaultProfile = new UserProfile
                 {
                     Name = "Default User",
+                    HasCompletedWizard = false,
                     BirthDate = new DateTime(1990, 1, 1),
                     Gender = Gender.Other,
                     HeightCm = 170,
