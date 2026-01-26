@@ -107,6 +107,8 @@ namespace CalorieTracker.data.Migrations
                     WeightChangeRateKgPerWeek = table.Column<double>(type: "REAL", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastUpdatedDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    HasCompletedWizard = table.Column<bool>(type: "INTEGER", nullable: false),
+                    WizardCompletedDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     UserSettingsId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>

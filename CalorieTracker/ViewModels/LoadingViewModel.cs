@@ -49,7 +49,16 @@ namespace CalorieTracker.ViewModels
                 // Add delay to see loading screen
                 await Task.Delay(2000); // 2 seconds
 
+                await _databaseService.InitializeAsync();
+
                 var profile = await _userProfileService.GetUserProfileAsync();
+
+#if DEBUG
+                // Force wizard every time in debug builds (great for testing)
+                profile.HasCompletedWizard = false;
+                await _userProfileService.UpdateUserProfileAsync(profile);
+#endif
+
                 if (!profile.HasCompletedWizard)
                 {
                     await SwitchToWizardAsync();

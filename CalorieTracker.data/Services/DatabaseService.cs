@@ -33,6 +33,16 @@ namespace CalorieTracker.data.Services
         {
             try
             {
+#if DEBUG
+                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var dbPath = Path.Combine(appDataPath, "calorietracker.db");
+                if (File.Exists(dbPath))
+                {
+                    File.Delete(dbPath);
+                    _logger.LogInformation("Deleted existing database for fresh start (debug only)");
+                }
+#endif
+
                 // 1. Apply migrations
                 await _context.Database.MigrateAsync();
 
