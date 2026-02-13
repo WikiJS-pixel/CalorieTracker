@@ -7,21 +7,28 @@ namespace CalorieTracker.data.Services
 {
     public class MealEntryService : IMealEntryService
     {
-        private readonly AppDbContext _context;
+        private readonly IDbContextFactory _dbContextFactory;
         private readonly ILogger<MealEntryService> _logger;
+        private readonly IDatabaseLock _dbLock;
 
-        public MealEntryService(AppDbContext context, ILogger<MealEntryService> logger)
+        public MealEntryService(
+        IDbContextFactory dbContextFactory,
+        ILogger<MealEntryService> logger,
+        IDatabaseLock dbLock)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
             _logger = logger;
+            _dbLock = dbLock;
         }
 
         public async Task<MealEntry> AddMealEntryAsync(MealEntry entry)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
+                using var context = _dbContextFactory.CreateContext();
                 // Validate food exists
-                var food = await _context.Foods
+                var food = await context.Foods
                     .IgnoreQueryFilters()
                     .FirstOrDefaultAsync(f => f.Id == entry.FoodId);
 
@@ -32,8 +39,8 @@ namespace CalorieTracker.data.Services
                     throw new InvalidOperationException($"Food '{food.Name}' is deleted and cannot be used");
 
                 entry.EntryDate = DateTime.UtcNow;
-                await _context.MealEntries.AddAsync(entry);
-                await _context.SaveChangesAsync();
+                await context.MealEntries.AddAsync(entry);
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("Added meal entry for food: {FoodName}", food.Name);
                 return entry;
@@ -43,13 +50,19 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error adding meal entry");
                 throw;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<MealEntry?> GetMealEntryByIdAsync(int id)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                return await _context.MealEntries
+                using var context = _dbContextFactory.CreateContext();
+                return await context.MealEntries
                     .Include(m => m.Food)
                     .FirstOrDefaultAsync(m => m.Id == id);
             }
@@ -58,13 +71,19 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error getting meal entry by ID: {Id}", id);
                 return null;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<bool> UpdateMealEntryAsync(MealEntry entry)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var existingEntry = await _context.MealEntries
+                using var context = _dbContextFactory.CreateContext();
+                var existingEntry = await context.MealEntries
                     .FirstOrDefaultAsync(m => m.Id == entry.Id);
 
                 if (existingEntry == null)
@@ -78,7 +97,7 @@ namespace CalorieTracker.data.Services
                 // Only update food if changed
                 if (existingEntry.FoodId != entry.FoodId)
                 {
-                    var food = await _context.Foods
+                    var food = await context.Foods
                         .IgnoreQueryFilters()
                         .FirstOrDefaultAsync(f => f.Id == entry.FoodId);
 
@@ -88,8 +107,8 @@ namespace CalorieTracker.data.Services
                     existingEntry.FoodId = entry.FoodId;
                 }
 
-                _context.MealEntries.Update(existingEntry);
-                await _context.SaveChangesAsync();
+                context.MealEntries.Update(existingEntry);
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("Updated meal entry ID: {Id}", entry.Id);
                 return true;
@@ -99,20 +118,26 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error updating meal entry ID: {Id}", entry.Id);
                 return false;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<bool> DeleteMealEntryAsync(int id)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var entry = await _context.MealEntries
+                using var context = _dbContextFactory.CreateContext();
+                var entry = await context.MealEntries
                     .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (entry == null)
                     return false;
 
-                _context.MealEntries.Remove(entry);
-                await _context.SaveChangesAsync();
+                context.MealEntries.Remove(entry);
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("Deleted meal entry ID: {Id}", id);
                 return true;
@@ -122,16 +147,22 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error deleting meal entry ID: {Id}", id);
                 return false;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<List<MealEntry>> GetMealEntriesByDateAsync(DateTime date)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
+                using var context = _dbContextFactory.CreateContext();
                 var startDate = date.Date;
                 var endDate = startDate.AddDays(1).AddTicks(-1);
 
-                return await _context.MealEntries
+                return await context.MealEntries
                     .Include(m => m.Food)
                     .Where(m => m.EntryDate >= startDate && m.EntryDate <= endDate)
                     .OrderBy(m => m.MealType)
@@ -143,13 +174,19 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error getting meal entries for date: {Date}", date);
                 return new List<MealEntry>();
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<List<MealEntry>> GetMealEntriesByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                return await _context.MealEntries
+                using var context = _dbContextFactory.CreateContext();
+                return await context.MealEntries
                     .Include(m => m.Food)
                     .Where(m => m.EntryDate >= startDate && m.EntryDate <= endDate)
                     .OrderByDescending(m => m.EntryDate)
@@ -161,6 +198,10 @@ namespace CalorieTracker.data.Services
                     startDate, endDate);
                 return new List<MealEntry>();
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<List<MealEntry>> GetTodayMealEntriesAsync()
@@ -170,10 +211,28 @@ namespace CalorieTracker.data.Services
 
         public async Task<DailySummary> GetDailySummaryAsync(DateTime date)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var entries = await GetMealEntriesByDateAsync(date);
+                using var context = _dbContextFactory.CreateContext();
+
+                var entries = await context.MealEntries
+                    .Include(m => m.Food)
+                    .Where(m => m.EntryDate.Date == date)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
                 var totals = CalculateNutritionTotals(entries);
+
+                // Calculate per-meal calories (ensuring all MealTypes exist with at least 0)
+                var mealCalories = Enum.GetValues(typeof(MealType))
+                    .Cast<MealType>()
+                    .ToDictionary(t => t, _ => 0.0);
+
+                foreach (var group in entries.GroupBy(e => e.MealType))
+                {
+                    mealCalories[group.Key] = group.Sum(e => e.Food?.CaloriesForAmount(e.AmountGrams) ?? 0);
+                }
 
                 // We'll get target calories from GoalCalculationService later
                 var summary = new DailySummary
@@ -184,8 +243,9 @@ namespace CalorieTracker.data.Services
                     TotalCarbs = totals.Carbs,
                     TotalFat = totals.Fat,
                     MealCount = entries.Count,
-                    TargetCalories = 0, // Will be populated by caller
-                    TargetProtein = 0   // Will be populated by caller
+                    TargetCalories = 0, // Filled later by CalorieTrackerService
+                    TargetProtein = 0,  // Filled later by CalorieTrackerService
+                    MealCalories = mealCalories
                 };
 
                 return summary;
@@ -193,7 +253,17 @@ namespace CalorieTracker.data.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting daily summary for date: {Date}", date);
-                return new DailySummary { Date = date.Date };
+                return new DailySummary
+                {
+                    Date = date.Date,
+                    MealCalories = Enum.GetValues(typeof(MealType))
+                        .Cast<MealType>()
+                        .ToDictionary(t => t, _ => 0.0)
+                };
+            }
+            finally
+            {
+                _dbLock.Semaphore.Release();
             }
         }
 
@@ -204,9 +274,15 @@ namespace CalorieTracker.data.Services
 
         public async Task<NutritionTotals> GetNutritionTotalsAsync(DateTime startDate, DateTime endDate)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var entries = await GetMealEntriesByDateRangeAsync(startDate, endDate);
+                using var context = _dbContextFactory.CreateContext();
+                var entries = await context.MealEntries
+                    .Include(m => m.Food)
+                    .Where(m => m.EntryDate >= startDate && m.EntryDate <= endDate)
+                    .ToListAsync();
+
                 return CalculateNutritionTotals(entries);
             }
             catch (Exception ex)
@@ -214,6 +290,10 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error getting nutrition totals for range: {Start} to {End}",
                     startDate, endDate);
                 return new NutritionTotals();
+            }
+            finally
+            {
+                _dbLock.Semaphore.Release();
             }
         }
 

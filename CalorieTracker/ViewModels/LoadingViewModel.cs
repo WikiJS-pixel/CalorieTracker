@@ -1,8 +1,10 @@
 ﻿using CalorieTracker.data.Interfaces;
+using CalorieTracker.data.Models.Events;
 using CalorieTracker.data.Services;
 using CalorieTracker.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.ViewModels
 {
@@ -10,7 +12,10 @@ namespace CalorieTracker.ViewModels
     {
         private readonly IDatabaseService _databaseService;
         private readonly IUserProfileService _userProfileService;
+        private readonly IProfileRepository _profileRepository;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
+        private readonly ILogger<LoadingViewModel> _logger;
 
         // UI State Properties
         [ObservableProperty]
@@ -22,13 +27,20 @@ namespace CalorieTracker.ViewModels
         [ObservableProperty]
         private string _errorMessage = string.Empty;
 
-        public LoadingViewModel(IDatabaseService databaseService,
+        public LoadingViewModel(
+            IDatabaseService databaseService,
             IUserProfileService userProfileService,
-            IServiceProvider serviceProvider)
+            IProfileRepository profileRepository,
+            IServiceProvider serviceProvider,
+            IEventAggregator eventAggregator,
+            ILogger<LoadingViewModel> logger)
         {
             _databaseService = databaseService;
             _userProfileService = userProfileService;
+            _profileRepository = profileRepository;
             _serviceProvider = serviceProvider;
+            _eventAggregator = eventAggregator;
+            _logger = logger;
         }
 
         [RelayCommand]
@@ -47,11 +59,18 @@ namespace CalorieTracker.ViewModels
             try
             {
                 // Add delay to see loading screen
-                await Task.Delay(2000); // 2 seconds
+                await Task.Delay(500);
+
+                _logger.LogInformation("LoadingViewModel: Starting app initialization...");
 
                 await _databaseService.InitializeAsync();
+                _logger.LogInformation("LoadingViewModel: Database initialized");
+
+                await _profileRepository.InitializeAsync();
+                _logger.LogInformation("LoadingViewModel: ProfileRepository initialized");
 
                 var profile = await _userProfileService.GetUserProfileAsync();
+                _logger.LogInformation("LoadingViewModel: Profile loaded. HasCompletedWizard = {HasWizard}", profile.HasCompletedWizard);
 
 #if DEBUG
                 // Force wizard every time in debug builds (great for testing)
@@ -76,43 +95,48 @@ namespace CalorieTracker.ViewModels
 
                 // Friendly error message for users, specific log for you
                 ErrorMessage = $"Unable to setup database.\nDetails: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"Error: {ex}");
+
+                _logger.LogError(ex, "LoadingViewModel: Critical error during app initialization");
+
+                await this.ExecuteWithSystemErrorHandlingAsync(
+                async () => throw ex, // Re-throw to trigger error handling
+                _eventAggregator,
+                _logger,
+                nameof(InitializeApp),
+                ErrorSeverity.Critical // Critical - app can't start
+            );
+
             }
         }
 
         private async Task SwitchToAppShellAsync()
         {
-            try
+            var appShell = _serviceProvider.GetRequiredService<AppShell>(); // Resolve from DI (singleton)
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                // Switch from LoadingPage to AppShell
-                MainThread.BeginInvokeOnMainThread(() =>
+                if (Application.Current?.Windows is { Count: > 0 })
                 {
-                    if (Application.Current?.Windows.Count > 0)
-                    {
-                        // Replace the current page (LoadingPage) with AppShell
-                        Application.Current.Windows[0].Page = new AppShell();
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("No application window available");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"SwitchToAppShellAsync Error: {ex}");
-                throw;
-            }
+                    Application.Current.Windows[0].Page = appShell;
+                }
+                else
+                {
+                    throw new InvalidOperationException("No application window available");
+                }
+            });
         }
 
         private async Task SwitchToWizardAsync()
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                if (Application.Current?.Windows.Count > 0)
+                if (Application.Current?.Windows is { Count: > 0 })
                 {
                     var wizardPage = _serviceProvider.GetRequiredService<WizardPage>();
                     Application.Current.Windows[0].Page = wizardPage;
+                }
+                else
+                {
+                    throw new InvalidOperationException("No application window available");
                 }
             });
         }

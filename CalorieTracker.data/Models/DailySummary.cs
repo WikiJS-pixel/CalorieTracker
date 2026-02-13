@@ -12,5 +12,7 @@
         public double TargetProtein { get; set; }
         public double RemainingCalories => Math.Max(0, TargetCalories - TotalCalories);
         public bool IsUnderTarget => TotalCalories <= TargetCalories;
+
+        public Dictionary<MealType, double> MealCalories { get; set; } = [];
     }
 }

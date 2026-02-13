@@ -21,5 +21,7 @@ namespace CalorieTracker.data.Interfaces
 
         // Macronutrient Calculations
         DailyGoals CalculateMacronutrients(double targetCalories, UserSettings settings);
+
+        void InvalidateCache();
     }
 }

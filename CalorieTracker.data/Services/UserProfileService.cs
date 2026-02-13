@@ -7,23 +7,31 @@ namespace CalorieTracker.data.Services
 {
     public class UserProfileService : IUserProfileService
     {
-        private readonly AppDbContext _context;
+        private readonly IDbContextFactory _dbContextFactory;
         private readonly ILogger<UserProfileService> _logger;
         private readonly IWeightService _weightService;
+        private readonly IDatabaseLock _dbLock;
 
-        public UserProfileService(AppDbContext context, ILogger<UserProfileService> logger,
+        public UserProfileService(
+            IDbContextFactory dbContextFactory,
+            ILogger<UserProfileService> logger,
+            IDatabaseLock dbLock,
             IWeightService weightService)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
             _logger = logger;
+            _dbLock = dbLock;
             _weightService = weightService;
         }
 
         public async Task<UserProfile> GetUserProfileAsync()
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var profile = await _context.UserProfiles
+                using var context = _dbContextFactory.CreateContext();
+
+                var profile = await context.UserProfiles
                     .FirstOrDefaultAsync(p => p.Id == 1);
 
                 if (profile == null)
@@ -42,8 +50,8 @@ namespace CalorieTracker.data.Services
                         CreatedDate = DateTime.UtcNow
                     };
 
-                    await _context.UserProfiles.AddAsync(profile);
-                    await _context.SaveChangesAsync();
+                    await context.UserProfiles.AddAsync(profile);
+                    await context.SaveChangesAsync();
                 }
 
                 return profile;
@@ -53,18 +61,39 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error getting user profile");
                 throw;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<UserProfile> UpdateUserProfileAsync(UserProfile profile)
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
+                using var context = _dbContextFactory.CreateContext();
+
                 // Ensure we're always updating the singleton profile
                 profile.Id = 1;
                 profile.LastUpdatedDate = DateTime.UtcNow;
 
-                _context.UserProfiles.Update(profile);
-                await _context.SaveChangesAsync();
+                // Check if profile exists
+                var existing = await context.UserProfiles
+                    .FirstOrDefaultAsync(p => p.Id == profile.Id);
+
+                if (existing != null)
+                {
+                    // Update existing
+                    context.Entry(existing).CurrentValues.SetValues(profile);
+                }
+                else
+                {
+                    // Add new
+                    await context.UserProfiles.AddAsync(profile);
+                }
+
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("Updated user profile");
                 return profile;
@@ -73,6 +102,10 @@ namespace CalorieTracker.data.Services
             {
                 _logger.LogError(ex, "Error updating user profile");
                 throw;
+            }
+            finally
+            {
+                _dbLock.Semaphore.Release();
             }
         }
 
@@ -91,10 +124,14 @@ namespace CalorieTracker.data.Services
 
         public async Task<UserSettings> GetUserSettingsAsync()
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
-                var settings = await _context.UserSettings
-                    .FirstOrDefaultAsync(s => s.Id == 1);
+                using var context = _dbContextFactory.CreateContext();
+
+                var settings = await context.UserSettings
+                    .FirstOrDefaultAsync(s => s.Id == 1)
+                    .ConfigureAwait(false);
 
                 if (settings == null)
                 {
@@ -113,8 +150,8 @@ namespace CalorieTracker.data.Services
                         CreatedDate = DateTime.UtcNow
                     };
 
-                    await _context.UserSettings.AddAsync(settings);
-                    await _context.SaveChangesAsync();
+                    await context.UserSettings.AddAsync(settings);
+                    await context.SaveChangesAsync();
 
                     _logger.LogInformation("Created default user settings");
                 }
@@ -126,6 +163,10 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error getting user settings");
                 throw;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
         public async Task<UserSettings> UpdateUserSettingsAsync(UserSettings settings)
@@ -133,8 +174,12 @@ namespace CalorieTracker.data.Services
             // Validate percentages are reasonable
             if (settings.ProteinPercentage < 0 || settings.CarbsPercentage < 0 || settings.FatPercentage < 0)
                 throw new ArgumentException("Percentages cannot be negative");
+
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
+                using var context = _dbContextFactory.CreateContext();
+
                 // Ensure we're always updating the singleton settings
                 settings.Id = 1;
                 settings.LastUpdatedDate = DateTime.UtcNow;
@@ -149,8 +194,22 @@ namespace CalorieTracker.data.Services
                     settings.FatPercentage = (settings.FatPercentage / total) * 100;
                 }
 
-                _context.UserSettings.Update(settings);
-                await _context.SaveChangesAsync();
+                // Check if settings exists
+                var existing = await context.UserSettings
+                    .FirstOrDefaultAsync(s => s.Id == settings.Id);
+
+                if (existing != null)
+                {
+                    // Update existing
+                    context.Entry(existing).CurrentValues.SetValues(settings);
+                }
+                else
+                {
+                    // Add new
+                    await context.UserSettings.AddAsync(settings);
+                }
+
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("Updated user settings");
                 return settings;
@@ -159,6 +218,10 @@ namespace CalorieTracker.data.Services
             {
                 _logger.LogError(ex, "Error updating user settings");
                 throw;
+            }
+            finally
+            {
+                _dbLock.Semaphore.Release();
             }
         }
     }

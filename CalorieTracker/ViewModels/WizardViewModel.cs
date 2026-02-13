@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using CalorieTracker.data.Interfaces;
 using CalorieTracker.data.Models;
+using CalorieTracker.data.Models.Events;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.ViewModels
 {
@@ -11,6 +13,10 @@ namespace CalorieTracker.ViewModels
         private readonly IUserProfileService _userProfileService;
         private readonly IWeightService _weightService;
         private readonly IGoalCalculationService _goalCalculationService;
+        private readonly IEventAggregator _eventAggregator;
+        private readonly IErrorService _errorService;
+        private readonly IAppStateService _appStateService;
+        private readonly ILogger<WizardViewModel> _logger;
 
         // Steps: 0=Personal, 1=Physical, 2=Activity&Goals, 3=Dietary, 4=Preview
         [ObservableProperty]
@@ -134,13 +140,23 @@ namespace CalorieTracker.ViewModels
         [ObservableProperty]
         private DailyGoals? _previewGoals;
 
-        public WizardViewModel(IUserProfileService userProfileService,
+        public WizardViewModel(
+            IUserProfileService userProfileService,
             IWeightService weightService,
-            IGoalCalculationService goalCalculationService)
+            IGoalCalculationService goalCalculationService,
+            IEventAggregator eventAggregator,
+            IErrorService errorService,
+            IAppStateService appStateService,
+            ILogger<WizardViewModel> logger)
         {
             _userProfileService = userProfileService;
             _weightService = weightService;
             _goalCalculationService = goalCalculationService;
+            _eventAggregator = eventAggregator;
+            _errorService = errorService;
+            _appStateService = appStateService;
+            _logger = logger;
+
             UpdateMacroTotal();
         }
 
@@ -258,12 +274,29 @@ namespace CalorieTracker.ViewModels
         {
             // Final validation
             ValidateAllProperties();
-            if (HasErrors) return;
+            if (HasErrors)
+            {
+                await _errorService.ShowErrorAsync(
+                    "Please fix the validation errors before continuing",
+                    "Validation Failed");
+                return;
+            }
 
             try
             {
-                // Update or create profile
+                // Get or create profile
                 var profile = await _userProfileService.GetUserProfileAsync();
+                if (profile == null)
+                {
+                    profile = new UserProfile
+                    {
+                        Id = 1,
+                        CreatedDate = DateTime.UtcNow
+                    }; // New profile for first-time users
+                       // Add any other defaults here if needed (e.g., profile.SomeField = defaultValue;)
+                }
+
+                // Apply wizard values
                 profile.Name = Name;
                 profile.BirthDate = BirthDate;
                 profile.Gender = Gender;
@@ -274,14 +307,37 @@ namespace CalorieTracker.ViewModels
                 profile.HasCompletedWizard = true;
                 profile.WizardCompletedDate = DateTime.UtcNow;
 
-                await _userProfileService.UpdateUserProfileAsync(profile);
+                _logger.LogInformation("Wizard: Saving profile - Name: {Name}, Height: {Height}", profile.Name, profile.HeightCm);
+                var savedProfile = await _userProfileService.UpdateUserProfileAsync(profile);
 
-                // Update settings (macros)
+                _logger.LogInformation("Wizard: Publishing ProfileUpdatedEvent");
+                await _eventAggregator.PublishAsync(new ProfileUpdatedEvent(savedProfile));
+
+                // Get or create settings
                 var settings = await _userProfileService.GetUserSettingsAsync();
+                if (settings == null)
+                {
+                    settings = new UserSettings
+                    {
+                        Id = 1,
+                        CreatedDate = DateTime.UtcNow
+                    };
+                }
+
+                // Apply macro preferences and sensible defaults
+                settings.TrackMacros = true; // Wizard configures macros, so enable tracking
                 settings.ProteinPercentage = ProteinPercentage;
                 settings.CarbsPercentage = CarbsPercentage;
                 settings.FatPercentage = FatPercentage;
-                await _userProfileService.UpdateUserSettingsAsync(settings);
+                settings.UseMetricSystem = true; // Wizard uses metric; match your app's default
+                settings.LastUpdatedDate = DateTime.UtcNow;
+
+                _logger.LogInformation("Wizard: Saving settings - Protein: {Protein}%, Carbs: {Carbs}%",
+            settings.ProteinPercentage, settings.CarbsPercentage);
+                var savedSettings = await _userProfileService.UpdateUserSettingsAsync(settings);
+
+                _logger.LogInformation("Wizard: Publishing SettingsUpdatedEvent");
+                await _eventAggregator.PublishAsync(new SettingsUpdatedEvent(savedSettings));
 
                 // Create initial weight log
                 await _weightService.AddWeightLogAsync(new WeightLog
@@ -290,6 +346,15 @@ namespace CalorieTracker.ViewModels
                     LogDate = DateTime.UtcNow.Date,
                     Notes = "Initial weight from onboarding"
                 });
+
+                await _errorService.ShowSuccessAsync(
+                "Your profile has been set up successfully!",
+                "Setup Complete");
+
+                // Store in shared state
+                _appStateService.LastSavedProfile = savedProfile;
+                _appStateService.LastSavedSettings = savedSettings;
+                _appStateService.WizardJustCompleted = true;
 
                 // Switch to main app
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -302,8 +367,9 @@ namespace CalorieTracker.ViewModels
             }
             catch (Exception ex)
             {
-                // TODO: Show error dialog (we'll add in Phase 4)
-                System.Diagnostics.Debug.WriteLine($"Wizard save error: {ex}");
+                await _errorService.ShowErrorAsync(
+                    $"Failed to save profile: {ex.Message}",
+                    "Save Error");
             }
         }
     }

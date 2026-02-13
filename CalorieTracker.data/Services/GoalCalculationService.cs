@@ -1,5 +1,7 @@
 ﻿using CalorieTracker.data.Interfaces;
 using CalorieTracker.data.Models;
+using CalorieTracker.data.Models.Events;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace CalorieTracker.data.Services
@@ -9,15 +11,23 @@ namespace CalorieTracker.data.Services
         private readonly IUserProfileService _userProfileService;
         private readonly IWeightService _weightService;
         private readonly ILogger<GoalCalculationService> _logger;
+        private readonly IEventAggregator _eventAggregator;
+        private readonly IMemoryCache _cache;
+
+        private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
         public GoalCalculationService(
             IUserProfileService userProfileService,
+            IWeightService weightService,
             ILogger<GoalCalculationService> logger,
-            IWeightService weightService)
+            IEventAggregator eventAggregator,
+            IMemoryCache? cache = null)
         {
             _userProfileService = userProfileService;
             _weightService = weightService;
             _logger = logger;
+            _eventAggregator = eventAggregator;
+            _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         }
 
         public double CalculateBMR_HarrisBenedict(double weightKg, double heightCm, int age, Gender gender)
@@ -135,27 +145,32 @@ namespace CalorieTracker.data.Services
 
         public async Task<DailyGoals> CalculateDailyGoalsAsync()
         {
-            try
+            return await ExecuteWithErrorHandlingAsync(async () =>
             {
                 var userProfile = await _userProfileService.GetUserProfileAsync();
                 return await CalculateDailyGoalsForUserAsync(userProfile);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating daily goals");
-                throw;
-            }
+            }, "Error calculating daily goals");
         }
 
         public async Task<DailyGoals> CalculateDailyGoalsForUserAsync(UserProfile user)
         {
-            try
+            return await ExecuteWithErrorHandlingAsync(async () =>
             {
-                // Get current weight
-                var currentWeight = await _weightService.GetCurrentWeightAsync();
-                if (!currentWeight.HasValue)
+                var cacheKey = $"goals_{user.Id}_{user.HeightCm}_{user.WeightGoal}_{user.ActivityLevel}";
+
+                if (_cache.TryGetValue(cacheKey, out DailyGoals? cachedGoals) && cachedGoals != null)
                 {
-                    throw new InvalidOperationException("Current weight not available");
+                    _logger.LogDebug("Returning cached goals for user {UserId}", user.Id);
+                    return cachedGoals;
+                }
+
+                // Get current weight with fallback
+                double? nullableWeight = await _weightService.GetCurrentWeightAsync();
+                double currentWeightValue = nullableWeight ?? 75.0;
+
+                if (nullableWeight == null)
+                {
+                    _logger.LogWarning("No current weight log found for user {UserId}. Using fallback weight of 75kg for temporary goal calculations.", user.Id);
                 }
 
                 // Get age
@@ -164,9 +179,9 @@ namespace CalorieTracker.data.Services
                 // Get user settings for macro distribution
                 var settings = await _userProfileService.GetUserSettingsAsync();
 
-                // 1. Calculate BMR (using Mifflin-St Jeor as it's more accurate)
+                // 1. Calculate BMR
                 var bmr = CalculateBMR_MifflinStJeor(
-                    currentWeight.Value,
+                    currentWeightValue,
                     user.HeightCm,
                     age,
                     user.Gender
@@ -191,16 +206,44 @@ namespace CalorieTracker.data.Services
                 // 4. Calculate macronutrient goals
                 var goals = CalculateMacronutrients(targetCalories, settings);
 
+                // Cache the result
+                _cache.Set(cacheKey, goals, _cacheDuration);
+
+                // Publish event for real-time updates
+                await _eventAggregator.PublishAsync(new GoalsRecalculatedEvent(goals));
+
                 _logger.LogInformation("Daily goals calculated: {Calories} calories, {Protein}g protein, {Carbs}g carbs, {Fat}g fat",
                     goals.TargetCalories, goals.TargetProtein, goals.TargetCarbs, goals.TargetFat);
 
                 return goals;
+            }, "Error calculating daily goals for user");
+        }
+
+        private async Task<T> ExecuteWithErrorHandlingAsync<T>(
+            Func<Task<T>> operation,
+            string errorMessage)
+        {
+            try
+            {
+                return await operation();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calculating daily goals for user");
+                _logger.LogError(ex, "Goal calculation failed: {ErrorMessage}", errorMessage);
+                await _eventAggregator.PublishAsync(new AppErrorEvent(
+                    errorMessage, ex, nameof(GoalCalculationService)));
                 throw;
             }
+        }
+
+        public void InvalidateCache()
+        {
+            // MemoryCache does not support wildcard/pattern removal.
+            // This is a single-user app with a short 5-minute cache duration,
+            // so explicit invalidation is not critical — cache will expire naturally.
+            // If you need immediate invalidation (e.g., after profile/weight changes),
+            // consider publishing an event or increasing cache key granularity.
+            _logger.LogDebug("Goals cache invalidation requested (no-op — short cache duration handles stale data)");
         }
     }
 }

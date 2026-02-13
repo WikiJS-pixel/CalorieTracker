@@ -1,12 +1,211 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:CalorieTracker.ViewModels"
+             xmlns:oxy="clr-namespace:OxyPlot.Maui.Skia;assembly=OxyPlot.Maui.Skia"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
              x:Class="CalorieTracker.Views.ProfilePage"
-             Title="ProfilePage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Profile Page"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:DataType="vm:ProfileViewModel"
+             Title="My Profile"
+             BackgroundColor="#F5F5F5">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="Appearing"
+                                        Command="{Binding InitializeCommand}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <Grid>
+            <!-- Loading Overlay -->
+            <Grid x:Name="LoadingOverlay" 
+              IsVisible="{Binding IsLoading}"
+              BackgroundColor="#80000000" 
+              VerticalOptions="Fill"
+              HorizontalOptions="Fill">
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
+                    <ActivityIndicator IsRunning="True" Color="White" HeightRequest="50" WidthRequest="50"/>
+                    <Label Text="{Binding LoadingMessage}" TextColor="White" FontSize="16" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout Spacing="15" Padding="15">
+
+                <!-- Profile Header -->
+                <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="15">
+                    <Border HeightRequest="60" WidthRequest="60" 
+                        StrokeShape="RoundRectangle 30"
+                        StrokeThickness="2"
+                        Stroke="{StaticResource Primary}"
+                        BackgroundColor="White"
+                        Padding="0">
+                        <Label Text="{Binding EditorViewModel.Name, Converter={toolkit:TextCaseConverter Type=Upper}, StringFormat='{0:1}'}" 
+                        FontSize="24" FontAttributes="Bold" 
+                        VerticalOptions="Center" HorizontalOptions="Center"
+                        TextColor="{StaticResource Primary}"/>
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="{Binding EditorViewModel.Name}" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{Binding EditorViewModel.GoalText}" FontSize="14" TextColor="Gray" />
+                    </VerticalStackLayout>
+
+                    <ActivityIndicator Grid.Column="2" IsRunning="{Binding EditorViewModel.IsSaving}" 
+                                       Color="{StaticResource Primary}" HeightRequest="20" WidthRequest="20"/>
+                </Grid>
+
+                <!-- Weight History Section -->
+                <Border StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="15" StrokeThickness="0">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Text="Weight History" FontAttributes="Bold" FontSize="16"/>
+                            <Label Text="{Binding WeightViewModel.CurrentWeight, StringFormat='{0:F1} kg'}" 
+                                   Grid.Column="1" TextColor="{StaticResource Primary}" FontAttributes="Bold" FontSize="16"/>
+                        </Grid>
+
+                        <oxy:PlotView Model="{Binding ChartViewModel.PlotModel}" 
+                                      HeightRequest="200" 
+                                      BackgroundColor="Transparent" />
+
+                        <Button Text="Log New Weight" 
+                                Command="{Binding WeightViewModel.LogWeightCommand}"
+                                BackgroundColor="{StaticResource Primary}" 
+                                TextColor="White"
+                                CornerRadius="8"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Physical Stats Section -->
+                <Border StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="15" StrokeThickness="0">
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Physical Stats" FontAttributes="Bold" FontSize="16"/>
+
+                        <!-- Height -->
+                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto" RowSpacing="15">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Height (cm)" VerticalOptions="Center"/>
+                            <Entry Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding EditorViewModel.HeightCm, StringFormat='{0:F1}'}" 
+                                   Keyboard="Numeric" 
+                                   WidthRequest="80" 
+                                   HorizontalTextAlignment="End"/>
+                            <!-- Birth Date -->
+                            <Label Grid.Row="1" Grid.Column="0" Text="Date of Birth" VerticalOptions="Center"/>
+                            <DatePicker Grid.Row="1" Grid.Column="1" 
+                                        Date="{Binding EditorViewModel.BirthDate}"
+                                        MaximumDate="{x:Static sys:DateTime.Now}"/>
+                            <!-- Gender -->
+                            <Label Grid.Row="2" Grid.Column="0" Text="Gender" VerticalOptions="Center"/>
+                            <Picker Grid.Row="2" Grid.Column="1"
+                                    Title="Select Gender"
+                                    ItemsSource="{Binding EditorViewModel.GenderOptions}"
+                                    SelectedItem="{Binding EditorViewModel.Gender}"
+                                    WidthRequest="120"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Activity Level Section -->
+                <Border StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="15" StrokeThickness="0">
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Activity Level" FontAttributes="Bold" FontSize="16"/>
+
+                        <VerticalStackLayout Spacing="5">
+                            <RadioButton GroupName="Activity" 
+                                         Content="Sedentary" 
+                                         IsChecked="{Binding EditorViewModel.IsSedentary}"/>
+                            <RadioButton GroupName="Activity" 
+                                         Content="Lightly Active" 
+                                         IsChecked="{Binding EditorViewModel.IsLightlyActive}"/>
+                            <RadioButton GroupName="Activity" 
+                                         Content="Moderately Active" 
+                                         IsChecked="{Binding EditorViewModel.IsModeratelyActive}"/>
+                            <RadioButton GroupName="Activity" 
+                                         Content="Very Active" 
+                                         IsChecked="{Binding EditorViewModel.IsVeryActive}"/>
+                            <RadioButton GroupName="Activity" 
+                                         Content="Extra Active" 
+                                         IsChecked="{Binding EditorViewModel.IsExtraActive}"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Preferences Section -->
+                <Border StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="15" StrokeThickness="0">
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Preferences" FontAttributes="Bold" FontSize="16"/>
+
+                        <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto" 
+                              ColumnDefinitions="*, Auto" 
+                              RowSpacing="15">
+
+                            <!-- Track Macros -->
+                            <Label Grid.Row="0" Grid.Column="0" 
+                                   Text="Track Macros" 
+                                   VerticalOptions="Center"/>
+                            <Switch Grid.Row="0" Grid.Column="1" 
+                                    IsToggled="{Binding EditorViewModel.TrackMacros}" 
+                                    OnColor="{StaticResource Primary}"/>
+
+                            <!-- Macro Percentages -->
+                            <Label Grid.Row="1" Grid.Column="0" 
+                                   Text="Protein %" 
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding EditorViewModel.ProteinPercentage, StringFormat='{0:F1}'}"
+                                   Keyboard="Numeric"
+                                   WidthRequest="60"
+                                   HorizontalTextAlignment="End"/>
+
+                            <Label Grid.Row="2" Grid.Column="0" 
+                                   Text="Carbs %" 
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Row="2" Grid.Column="1"
+                                   Text="{Binding EditorViewModel.CarbsPercentage, StringFormat='{0:F1}'}"
+                                   Keyboard="Numeric"
+                                   WidthRequest="60"
+                                   HorizontalTextAlignment="End"/>
+
+                            <Label Grid.Row="3" Grid.Column="0" 
+                                   Text="Fat %" 
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Row="3" Grid.Column="1"
+                                   Text="{Binding EditorViewModel.FatPercentage, StringFormat='{0:F1}'}"
+                                   Keyboard="Numeric"
+                                   WidthRequest="60"
+                                   HorizontalTextAlignment="End"/>
+
+                            <!-- Metric System -->
+                            <Label Grid.Row="4" Grid.Column="0" 
+                                   Text="Use Metric System" 
+                                   VerticalOptions="Center"/>
+                            <Switch Grid.Row="4" Grid.Column="1" 
+                                    IsToggled="{Binding EditorViewModel.UseMetricSystem}" 
+                                    OnColor="{StaticResource Primary}"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <HorizontalStackLayout HorizontalOptions="EndAndExpand" Spacing="20" Margin="0,10">
+                    <Button Text="↺ Undo"
+                            Command="{Binding EditorViewModel.UndoCommand}"
+                            IsEnabled="{Binding EditorViewModel.CanUndo}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"/>
+                    <Button Text="↻ Redo"
+                            Command="{Binding EditorViewModel.RedoCommand}"
+                            IsEnabled="{Binding EditorViewModel.CanRedo}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"/>
+                </HorizontalStackLayout>
+
+                <!-- Reset Button -->
+                <Button Text="Reset Profile" 
+                        BackgroundColor="#FFEBEE" 
+                        TextColor="Red" 
+                        CornerRadius="8"
+                        Margin="0,10,0,0"/>
+
+            </VerticalStackLayout>
+        </Grid>
+    </ScrollView>
 </ContentPage>

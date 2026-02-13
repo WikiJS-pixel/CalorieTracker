@@ -12,25 +12,27 @@ namespace CalorieTracker.data.Services
 
     public class DatabaseService : IDatabaseService
     {
-        private readonly AppDbContext _context;
+        private readonly IDbContextFactory _dbContextFactory;
         private readonly ILogger<DatabaseService> _logger;
         private readonly IFoodDataSeeder _foodDataSeeder;
-        private readonly IWeightService _weightService;
+        private readonly IDatabaseLock _dbLock;
 
         public DatabaseService(
-            AppDbContext context,
+            IDbContextFactory dbContextFactory,
             ILogger<DatabaseService> logger,
             IFoodDataSeeder foodDataSeeder,
-            IWeightService weightService)
+            IDatabaseLock dbLock)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
             _logger = logger;
             _foodDataSeeder = foodDataSeeder;
-            _weightService = weightService;
+            _dbLock = dbLock;
         }
+
 
         public async Task InitializeAsync()
         {
+            await _dbLock.Semaphore.WaitAsync();
             try
             {
 #if DEBUG
@@ -43,18 +45,21 @@ namespace CalorieTracker.data.Services
                 }
 #endif
 
+                // Create the context AFTER the potential debug delete
+                using var context = _dbContextFactory.CreateContext();
+
                 // 1. Apply migrations
-                await _context.Database.MigrateAsync();
+                await context.Database.MigrateAsync();
 
                 // 2. Seed default user profile and settings
-                await SeedUserProfileAsync();
-                await SeedUserSettingsAsync();
+                await SeedUserProfileAsync(context);
+                await SeedUserSettingsAsync(context);
 
                 // 3. Seed initial data (foods from JSON)
-                await SeedFoodDataAsync();
+                await SeedFoodDataAsync(context);
 
-                // 4. Seed weight log for single user
-                await SeedInitialWeightLogAsync();
+                // 4. Seed initial weight log directly (avoid calling locked WeightService)
+                await SeedInitialWeightLogAsync(context);
 
                 _logger.LogInformation("Database initialized successfully");
             }
@@ -63,11 +68,15 @@ namespace CalorieTracker.data.Services
                 _logger.LogError(ex, "Error initializing database");
                 throw;
             }
+            finally
+            {
+                _dbLock.Semaphore.Release();
+            }
         }
 
-        private async Task SeedUserProfileAsync()
+        private async Task SeedUserProfileAsync(AppDbContext context)
         {
-            if (!await _context.UserProfiles.AnyAsync())
+            if (!await context.UserProfiles.AnyAsync())
             {
                 var defaultProfile = new UserProfile
                 {
@@ -83,15 +92,15 @@ namespace CalorieTracker.data.Services
                     LastUpdatedDate = null
                 };
 
-                await _context.UserProfiles.AddAsync(defaultProfile);
-                await _context.SaveChangesAsync();
+                await context.UserProfiles.AddAsync(defaultProfile);
+                await context.SaveChangesAsync();
                 _logger.LogInformation("Seeded default user profile");
             }
         }
 
-        private async Task SeedUserSettingsAsync()
+        private async Task SeedUserSettingsAsync(AppDbContext context)
         {
-            if (!await _context.UserSettings.AnyAsync())
+            if (!await context.UserSettings.AnyAsync())
             {
                 var defaultSettings = new UserSettings
                 {
@@ -99,26 +108,25 @@ namespace CalorieTracker.data.Services
                     CarbsPercentage = 50,
                     FatPercentage = 25,
                     UseMetricSystem = true,
-                    Theme = "Light",
                     TrackMacros = true,
                     TrackWater = false,
                     EnableMealReminders = true,
                     MealReminderTime = new TimeSpan(12, 0, 0)
                 };
 
-                await _context.UserSettings.AddAsync(defaultSettings);
-                await _context.SaveChangesAsync();
+                await context.UserSettings.AddAsync(defaultSettings);
+                await context.SaveChangesAsync();
                 _logger.LogInformation("Seeded default user settings");
             }
         }
 
-        private async Task SeedFoodDataAsync()
+        private async Task SeedFoodDataAsync(AppDbContext context)
         {
             // Check if Foods table is empty
-            var foodCount = await _context.Foods.CountAsync();
+            var foodCount = await context.Foods.CountAsync();
             _logger.LogInformation($"Current food count in database (including deleted): {foodCount}");
 
-            if (!await _context.Foods.AnyAsync(f => !f.IsDeleted))
+            if (!await context.Foods.AnyAsync(f => !f.IsDeleted))
             {
                 _logger.LogInformation("No non-deleted foods found. Seeding food data...");
                 try
@@ -130,9 +138,9 @@ namespace CalorieTracker.data.Services
 
                     if (foods != null && foods.Any())
                     {
-                        await _context.Foods.AddRangeAsync(foods);
-                        var result = await _context.SaveChangesAsync();
-                        _logger.LogInformation($"Saved {result} foods to database. Total foods now: {await _context.Foods.CountAsync()}");
+                        await context.Foods.AddRangeAsync(foods);
+                        var result = await context.SaveChangesAsync();
+                        _logger.LogInformation($"Saved {result} foods to database. Total foods now: {await context.Foods.CountAsync()}");
                     }
                     else
                     {
@@ -149,8 +157,8 @@ namespace CalorieTracker.data.Services
                             Description = "Added because seed failed"
                         };
 
-                        await _context.Foods.AddAsync(emergencyFood);
-                        await _context.SaveChangesAsync();
+                        await context.Foods.AddAsync(emergencyFood);
+                        await context.SaveChangesAsync();
                         _logger.LogInformation("Added default sample food");
                     }
                 }
@@ -169,8 +177,8 @@ namespace CalorieTracker.data.Services
                         Description = "Fallback food due to seeding error"
                     };
 
-                    await _context.Foods.AddAsync(fallbackFood);
-                    await _context.SaveChangesAsync();
+                    await context.Foods.AddAsync(fallbackFood);
+                    await context.SaveChangesAsync();
                     _logger.LogInformation("Added fallback food due to seeding error");
                 }
             }
@@ -180,19 +188,19 @@ namespace CalorieTracker.data.Services
             }
         }
 
-        private async Task SeedInitialWeightLogAsync()
+        private async Task SeedInitialWeightLogAsync(AppDbContext context)
         {
-            var currentWeight = await _weightService.GetCurrentWeightAsync();
-            // Seed initial weight log if none exists
-            if (currentWeight == null)
+            if (!await context.WeightLogs.AnyAsync())
             {
-                await _weightService.AddWeightLogAsync(new WeightLog
+                var initialLog = new WeightLog
                 {
                     WeightKg = 70.0,
                     LogDate = DateTime.UtcNow,
                     Notes = "Initial weight"
-                });
+                };
 
+                await context.WeightLogs.AddAsync(initialLog);
+                await context.SaveChangesAsync();
                 _logger.LogInformation("Seeded initial weight log");
             }
         }
